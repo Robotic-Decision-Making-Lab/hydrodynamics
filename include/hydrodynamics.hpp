@@ -50,9 +50,9 @@ struct Inertia {
           const Eigen::Vector6d &added_mass);
 
   double mass;
-  std::shared_ptr<Eigen::Matrix6d> matrix;
-  std::shared_ptr<Eigen::Matrix3d> moments;
-  std::shared_ptr<Eigen::Matrix6d> added_mass;
+  Eigen::Matrix6d matrix;
+  Eigen::Matrix3d moments;
+  Eigen::Matrix6d added_mass;
 };
 
 struct Coriolis {
@@ -87,8 +87,8 @@ struct Coriolis {
   calculateCoriolis(const Eigen::Vector6d &velocity) const;
 
   double mass;
-  std::shared_ptr<Eigen::Matrix3d> moments;
-  std::shared_ptr<Eigen::Matrix6d> added_mass;
+  Eigen::Matrix3d moments;
+  Eigen::Matrix6d added_mass;
 };
 
 struct Damping {
@@ -103,8 +103,8 @@ struct Damping {
   [[nodiscard]] Eigen::Matrix6d
   calculateDamping(const Eigen::Vector6d &velocity) const;
 
-  std::shared_ptr<Eigen::Vector6d> linear;
-  std::shared_ptr<Eigen::Vector6d> quadratic;
+  Eigen::Vector6d linear;
+  Eigen::Vector6d quadratic;
 };
 
 struct RestoringForces {
@@ -119,8 +119,8 @@ struct RestoringForces {
 
   double weight;
   double buoyancy;
-  std::shared_ptr<Eigen::Vector3d> center_of_buoyancy;
-  std::shared_ptr<Eigen::Vector3d> center_of_gravity;
+  Eigen::Vector3d center_of_buoyancy;
+  Eigen::Vector3d center_of_gravity;
 };
 
 struct CurrentEffects {
@@ -131,7 +131,7 @@ struct CurrentEffects {
   [[nodiscard]] Eigen::Vector6d
   calculateCurrentEffects(const Eigen::Matrix3d &rot) const;
 
-  std::shared_ptr<Eigen::Vector6d> velocity;
+  Eigen::Vector6d velocity;
 };
 
 } // namespace hydrodynamics
