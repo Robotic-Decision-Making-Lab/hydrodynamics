@@ -22,6 +22,7 @@
 
 namespace hydrodynamics
 {
+
 namespace
 {
 
@@ -95,7 +96,8 @@ Coriolis::Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d
 {
 }
 
-Coriolis::calculateRigidBodyCoriolisMatrix(const Eigen::Vector3d & angular_velocity) const
+Eigen::Matrix6d Coriolis::calculateRigidBodyCoriolisMatrix(
+  const Eigen::Vector3d & angular_velocity) const
 {
   Eigen::Matrix6d coriolis = Eigen::Matrix6d::Zero();
 
@@ -107,17 +109,19 @@ Coriolis::calculateRigidBodyCoriolisMatrix(const Eigen::Vector3d & angular_veloc
   return coriolis;
 }
 
-Coriolis::calculateAddedCoriolisMatrix(const Eigen::Vector6d & velocity) const
+Eigen::Matrix6d Coriolis::calculateAddedCoriolisMatrix(const Eigen::Vector6d & velocity) const
 {
   Eigen::Matrix6d coriolis = Eigen::Matrix6d::Zero();
 
-  Eigen::Matrix3d linear_vel = createSkewSymmetricMatrix(added_mass_coeff_(0) * velocity(0),
-                                                         added_mass_coeff_(1) * velocity(1),
-                                                         added_mass_coeff_(2) * velocity(2));
+  Eigen::Matrix3d linear_vel =
+    makeSkewSymmetricMatrix(Eigen::Vector3d(added_mass_coeff_(0) * velocity(0),
+                                            added_mass_coeff_(1) * velocity(1),
+                                            added_mass_coeff_(2) * velocity(2)));
 
-  Eigen::Matrix3d angular_vel = createSkewSymmetricMatrix(added_mass_coeff_(3) * velocity(3),
-                                                          added_mass_coeff_(4) * velocity(4),
-                                                          added_mass_coeff_(5) * velocity(5));
+  Eigen::Matrix3d angular_vel =
+    makeSkewSymmetricMatrix(Eigen::Vector3d(added_mass_coeff_(3) * velocity(3),
+                                            added_mass_coeff_(4) * velocity(4),
+                                            added_mass_coeff_(5) * velocity(5)));
 
   coriolis.topRightCorner(3, 3) = linear_vel;
   coriolis.bottomLeftCorner(3, 3) = linear_vel;
@@ -126,7 +130,7 @@ Coriolis::calculateAddedCoriolisMatrix(const Eigen::Vector6d & velocity) const
   return coriolis;
 }
 
-Coriolis::calculateCoriolisMatrix(const Eigen::Vector6d & velocity) const
+Eigen::Matrix6d Coriolis::calculateCoriolisMatrix(const Eigen::Vector6d & velocity) const
 {
   return calculateRigidBodyCoriolisMatrix(velocity.bottomRows(3)) +
          calculateAddedCoriolisMatrix(velocity);
@@ -154,14 +158,13 @@ Damping::Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic)
 {
 }
 
-Damping::calculateDampingMatrix(const Eigen::Vector6d & velocity) const
+Eigen::Matrix6d Damping::calculateDampingMatrix(const Eigen::Vector6d & velocity) const
 {
-  Eigen::Matrix6d quadratic =
-    -(quadratic_damping_coeff_.asDiagonal().toDenseMatrix() * velocity.cwiseAbs())
-       .asDiagonal()
-       .toDenseMatrix();
+  Eigen::Matrix6d quadratic = -(quadratic_coeff_.asDiagonal().toDenseMatrix() * velocity.cwiseAbs())
+                                 .asDiagonal()
+                                 .toDenseMatrix();
 
-  return -linear_damping_coeff_.asDiagonal().toDenseMatrix() + quadratic;
+  return -linear_coeff_.asDiagonal().toDenseMatrix() + quadratic;
 }
 
 RestoringForces::RestoringForces(double weight,
@@ -175,29 +178,28 @@ RestoringForces::RestoringForces(double weight,
 {
 }
 
-RestoringForces::calculateRestoringForcesVector(const Eigen::Matrix3d & rot) const
+Eigen::Vector6d RestoringForces::calculateRestoringForcesVector(const Eigen::Matrix3d & rot) const
 {
   const Eigen::Vector3d fg(0, 0, weight_);
   const Eigen::Vector3d fb(0, 0, -buoyancy_);
 
   Eigen::Vector6d g_rb;
 
-  g_rb.topRows(3) = rotation * (fg + fb);
-  g_rb.bottomRows(3) =
-    center_of_gravity_.cross(rotation * fg) + center_of_buoyancy_.cross(rotation * fb);
+  g_rb.topRows(3) = rot * (fg + fb);
+  g_rb.bottomRows(3) = center_of_gravity_.cross(rot * fg) + center_of_buoyancy_.cross(rot * fb);
 
   g_rb *= -1;
 
   return g_rb;
 }
 
-CurrentEffects::CurrentEffects(Eigen::Vector6d velocity) : velocity_(std::move(velocity)) {}
+CurrentEffects::CurrentEffects(Eigen::Vector6d velocity) : current_(std::move(velocity)) {}
 
-CurrentEffects::calculateCurrentEffectsVector(const Eigen::Matrix3d & rot) const
+Eigen::Vector6d CurrentEffects::calculateCurrentEffectsVector(const Eigen::Matrix3d & rot) const
 {
   Eigen::Vector6d rotated_current_effects;
-  rotated_current_effects.topRows(3) = rotation * current_velocity_.topRows(3);
-  rotated_current_effects.bottomRows(3) = rotation * current_velocity_.bottomRows(3);
+  rotated_current_effects.topRows(3) = rot * current_.topRows(3);
+  rotated_current_effects.bottomRows(3) = rot * current_.bottomRows(3);
 
   return rotated_current_effects;
 }

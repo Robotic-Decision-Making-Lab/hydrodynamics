@@ -23,7 +23,7 @@
 #include <Eigen/Dense>
 #include <memory>
 
-#include "hydrodynamics/eigen.hpp"
+#include "eigen.hpp"
 
 namespace hydrodynamics
 {
@@ -145,7 +145,7 @@ class CurrentEffects
   [[nodiscard]] Eigen::Vector6d calculateCurrentEffectsVector(const Eigen::Matrix3d & rot) const;
 
 private:
-  Eigen::Vector6d velocity;
+  Eigen::Vector6d current_;
 };
 
 }  // namespace hydrodynamics
