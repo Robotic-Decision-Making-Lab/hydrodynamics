@@ -25,113 +25,127 @@
 
 #include "hydrodynamics/eigen.hpp"
 
-namespace hydrodynamics {
+namespace hydrodynamics
+{
 
-struct Inertia {
+class Inertia
+{
+public:
   Inertia() = default;
 
-  Inertia(double mass, double Ixx, double Iyy, double Izz, double Xdu,
-          double Ydv, double Zdw, double Kdp, double Mdq, double Ndr);
+  Inertia(double mass,
+          double Ixx,
+          double Iyy,
+          double Izz,
+          double Xdu,
+          double Ydv,
+          double Zdw,
+          double Kdp,
+          double Mdq,
+          double Ndr);
 
-  Inertia(double mass, double Ixx, double Iyy, double Izz, double Ixy,
-          double Ixz, double Iyz, double Xdu, double Ydv, double Zdw,
-          double Kdp, double Mdq, double Ndr);
+  Inertia(double mass, const Eigen::Vector3d & moments, const Eigen::Vector6d & added_mass);
 
-  Inertia(double mass, const Eigen::Vector3d &moments,
-          const Eigen::Vector6d &added_mass);
+  [[nodiscard]] Eigen::Matrix6d getRigidBodyInertiaMatrix() const;
 
-  Inertia(double mass, const Eigen::Vector6d &moments,
-          const Eigen::Vector6d &added_mass);
+  [[nodiscard]] Eigen::Matrix6d getAddedMassMatrix() const;
 
-  Inertia(double mass, const Eigen::Matrix3d &moments,
-          const Eigen::Vector6d &added_mass);
+  [[nodiscard]] Eigen::Matrix6d getMassMatrix() const;
 
-  Inertia(double mass, const Eigen::Vector6d &moments,
-          const Eigen::Vector6d &added_mass);
-
-  double mass;
-  Eigen::Matrix6d matrix;
-  Eigen::Matrix3d moments;
-  Eigen::Matrix6d added_mass;
+private:
+  Eigen::Matrix6d rigid_body_mat_;
+  Eigen::Matrix6d added_mass_mat_;
+  Eigen::Matrix6d mass_mat_;
 };
 
-struct Coriolis {
+class Coriolis
+{
+public:
   Coriolis() = default;
 
-  Coriolis(double mass, double Ixx, double Iyy, double Izz, double Xdu,
-           double Ydv, double Zdw, double Kdp, double Mdq, double Ndr);
+  Coriolis(double mass,
+           double Ixx,
+           double Iyy,
+           double Izz,
+           double Xdu,
+           double Ydv,
+           double Zdw,
+           double Kdp,
+           double Mdq,
+           double Ndr);
 
-  Coriolis(double mass, double Ixx, double Iyy, double Izz, double Ixy,
-           double Ixz, double Iyz, double Xdu, double Ydv, double Zdw,
-           double Kdp, double Mdq, double Ndr);
+  Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass);
 
-  Coriolis(double mass, const Eigen::Vector3d &moments,
-           const Eigen::Vector6d &added_mass);
+  [[nodiscard]] Eigen::Matrix6d calculateRigidBodyCoriolisMatrix(
+    const Eigen::Vector3d & angular_velocity) const;
 
-  Coriolis(double mass, const Eigen::Vector6d &moments,
-           const Eigen::Vector6d &added_mass);
+  [[nodiscard]] Eigen::Matrix6d calculateAddedCoriolisMatrix(
+    const Eigen::Vector6d & velocity) const;
 
-  Coriolis(double mass, const Eigen::Matrix3d &moments,
-           const Eigen::Vector6d &added_mass);
+  [[nodiscard]] Eigen::Matrix6d calculateCoriolisMatrix(const Eigen::Vector6d & velocity) const;
 
-  Coriolis(double mass, const Eigen::Vector6d &moments,
-           const Eigen::Vector6d &added_mass);
-
-  [[nodiscard]] Eigen::Matrix6d
-  calculateRigidBodyCoriolis(const Eigen::Vector3d &angular_velocity) const;
-
-  [[nodiscard]] Eigen::Matrix6d
-  calculateAddedMassCoriolis(const Eigen::Vector6d &velocity) const;
-
-  [[nodiscard]] Eigen::Matrix6d
-  calculateCoriolis(const Eigen::Vector6d &velocity) const;
-
-  double mass;
-  Eigen::Matrix3d moments;
-  Eigen::Matrix6d added_mass;
+private:
+  double mass_;
+  Eigen::Matrix3d moments_;
+  Eigen::Vector6d added_mass_coeff_;
 };
 
-struct Damping {
+class Damping
+{
+public:
   Damping() = default;
 
-  Damping(double Xu, double Yv, double Zw, double Kp, double Mq, double Nr,
-          double Xuu, double Yvv, double Zww, double Kpp, double Mqq,
+  Damping(double Xu,
+          double Yv,
+          double Zw,
+          double Kp,
+          double Mq,
+          double Nr,
+          double Xuu,
+          double Yvv,
+          double Zww,
+          double Kpp,
+          double Mqq,
           double Nrr);
 
-  Damping(const Eigen::Vector6d &linear, const Eigen::Vector6d &quadratic);
+  Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic);
 
-  [[nodiscard]] Eigen::Matrix6d
-  calculateDamping(const Eigen::Vector6d &velocity) const;
+  [[nodiscard]] Eigen::Matrix6d calculateDampingMatrix(const Eigen::Vector6d & velocity) const;
 
-  Eigen::Vector6d linear;
-  Eigen::Vector6d quadratic;
+private:
+  Eigen::Vector6d linear_coeff_;
+  Eigen::Vector6d quadratic_coeff_;
 };
 
-struct RestoringForces {
+class RestoringForces
+{
+public:
   RestoringForces() = default;
 
-  RestoringForces(double weight, double buoyancy,
+  RestoringForces(double weight,
+                  double buoyancy,
                   Eigen::Vector3d center_of_buoyancy,
                   Eigen::Vector3d center_of_gravity);
 
-  [[nodiscard]] Eigen::Vector6d
-  calculateRestoringForces(const Eigen::Matrix3d &rot) const;
+  [[nodiscard]] Eigen::Vector6d calculateRestoringForcesVector(const Eigen::Matrix3d & rot) const;
 
-  double weight;
-  double buoyancy;
-  Eigen::Vector3d center_of_buoyancy;
-  Eigen::Vector3d center_of_gravity;
+private:
+  double weight_;
+  double buoyancy_;
+  Eigen::Vector3d center_of_buoyancy_;
+  Eigen::Vector3d center_of_gravity_;
 };
 
-struct CurrentEffects {
+class CurrentEffects
+{
   CurrentEffects() = default;
 
   CurrentEffects(Eigen::Vector6d velocity);
 
-  [[nodiscard]] Eigen::Vector6d
-  calculateCurrentEffects(const Eigen::Matrix3d &rot) const;
+  [[nodiscard]] Eigen::Vector6d calculateCurrentEffectsVector(const Eigen::Matrix3d & rot) const;
 
+private:
   Eigen::Vector6d velocity;
 };
 
-} // namespace hydrodynamics
+}  // namespace hydrodynamics

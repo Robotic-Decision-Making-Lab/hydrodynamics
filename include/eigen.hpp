@@ -23,12 +23,11 @@
 #include <Eigen/Dense>
 #include <vector>
 
-/// @cond
-namespace Eigen {
+namespace Eigen
+{
 
 // Extend the Eigen namespace to include commonly used matrix types
 using Matrix6d = Eigen::Matrix<double, 6, 6>;
 using Vector6d = Eigen::Matrix<double, 6, 1>;
 
-} // namespace Eigen
-  /// @endcond
+}  // namespace Eigen

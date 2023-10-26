@@ -1,27 +1,39 @@
----
-Language: Cpp
-BasedOnStyle: Google
-ColumnLimit: 100
-MaxEmptyLinesToKeep: 1
-
-IndentWidth: 2
-TabWidth: 2
-UseTab: Never
-AccessModifierOffset: -2
-AlignAfterOpenBracket: AlwaysBreak
-ConstructorInitializerIndentWidth: 0
-ContinuationIndentWidth: 2
-DerivePointerAlignment: false
-PointerAlignment: Middle
-PackConstructorInitializers: Never
-
-# Configure brace wrapping cases
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterClass: true
-  AfterEnum: true
-  AfterFunction: true
-  AfterNamespace: true
-  AfterStruct: true
-  AfterUnion: true
-  BeforeCatch: true
+Checks: >
+  -*,
+  abseil-*,
+  bugprone-*,
+  google-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -google-readability-braces-around-statements,
+  -google-readability-namespace-comments,
+  -google-runtime-references,
+  -misc-non-private-member-variables-in-classes,
+  -modernize-return-braced-init-list,
+  -modernize-use-trailing-return-type,
+  -readability-braces-around-statements,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -readability-named-parameter,
+  -readability-redundant-declaration,
+  -readability-function-cognitive-complexity,
+  -readability-implicit-bool-conversion,
+  -bugprone-narrowing-conversions,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+  -clang-diagnostic-error,
+  -bugprone-exception-escape
+CheckOptions:
+  - { key: readability-identifier-naming.NamespaceCase,         value: lower_case }
+  - { key: readability-identifier-naming.ClassCase,             value: CamelCase  }
+  - { key: readability-identifier-naming.GlobalFunctionCase,    value: camelBack }
+  - { key: readability-identifier-naming.StructCase,            value: CamelCase }
+  - { key: readability-identifier-naming.FunctionCase,          value: CamelCase }
+  - { key: readability-identifier-naming.ParameterPrefix,       value: _ }
+  - { key: readability-identifier-naming.VariableCase,          value: camelBack }
+  - { key: readability-identifier-naming.MemberCase,            value: camelBack }
+  - { key: readability-identifier-naming.GlobalConstantPrefix,  value: k }
+  - { key: readability-identifier-naming.GlobalConstantCase,    value: CamelCase }
