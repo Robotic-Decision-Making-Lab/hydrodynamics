@@ -35,8 +35,16 @@ Eigen::Matrix3d makeSkewSymmetricMatrix(const Eigen::Vector3d & v)
 
 }  // namespace
 
-Inertia::Inertia(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv,
-                 double Zdw, double Kdp, double Mdq, double Ndr)
+Inertia::Inertia(double mass,
+                 double Ixx,
+                 double Iyy,
+                 double Izz,
+                 double Xdu,
+                 double Ydv,
+                 double Zdw,
+                 double Kdp,
+                 double Mdq,
+                 double Ndr)
 {
   Eigen::Matrix6d rigid_body_mat_ = Eigen::Matrix6d::Zero();
   rigid_body_mat_.topLeftCorner(3, 3) = mass * Eigen::Matrix3d::Identity();
@@ -65,8 +73,16 @@ Eigen::Matrix6d Inertia::getAddedMassMatrix() const { return added_mass_mat_; }
 
 Eigen::Matrix6d Inertia::getMassMatrix() const { return mass_mat_; }
 
-Coriolis::Coriolis(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv,
-                   double Zdw, double Kdp, double Mdq, double Ndr)
+Coriolis::Coriolis(double mass,
+                   double Ixx,
+                   double Iyy,
+                   double Izz,
+                   double Xdu,
+                   double Ydv,
+                   double Zdw,
+                   double Kdp,
+                   double Mdq,
+                   double Ndr)
 : mass_(mass),
   moments_(Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix()),
   added_mass_coeff_(Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr))
@@ -120,8 +136,18 @@ Eigen::Matrix6d Coriolis::calculateCoriolisMatrix(const Eigen::Vector6d & veloci
          calculateAddedCoriolisMatrix(velocity);
 }
 
-Damping::Damping(double Xu, double Yv, double Zw, double Kp, double Mq, double Nr, double Xuu,
-                 double Yvv, double Zww, double Kpp, double Mqq, double Nrr)
+Damping::Damping(double Xu,
+                 double Yv,
+                 double Zw,
+                 double Kp,
+                 double Mq,
+                 double Nr,
+                 double Xuu,
+                 double Yvv,
+                 double Zww,
+                 double Kpp,
+                 double Mqq,
+                 double Nrr)
 : linear_coeff_(Eigen::Vector6d(Xu, Yv, Zw, Kp, Mq, Nr)),
   quadratic_coeff_(Eigen::Vector6d(Xuu, Yvv, Zww, Kpp, Mqq, Nrr))
 {
@@ -141,7 +167,9 @@ Eigen::Matrix6d Damping::calculateDampingMatrix(const Eigen::Vector6d & velocity
   return -linear_coeff_.asDiagonal().toDenseMatrix() + quadratic;
 }
 
-RestoringForces::RestoringForces(double weight, double buoyancy, Eigen::Vector3d center_of_buoyancy,
+RestoringForces::RestoringForces(double weight,
+                                 double buoyancy,
+                                 Eigen::Vector3d center_of_buoyancy,
                                  Eigen::Vector3d center_of_gravity)
 : weight_(weight),
   buoyancy_(buoyancy),

@@ -33,8 +33,16 @@ class Inertia
 public:
   Inertia() = default;
 
-  Inertia(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv, double Zdw,
-          double Kdp, double Mdq, double Ndr);
+  Inertia(double mass,
+          double Ixx,
+          double Iyy,
+          double Izz,
+          double Xdu,
+          double Ydv,
+          double Zdw,
+          double Kdp,
+          double Mdq,
+          double Ndr);
 
   Inertia(double mass, const Eigen::Vector3d & moments, const Eigen::Vector6d & added_mass);
 
@@ -55,8 +63,16 @@ class Coriolis
 public:
   Coriolis() = default;
 
-  Coriolis(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv, double Zdw,
-           double Kdp, double Mdq, double Ndr);
+  Coriolis(double mass,
+           double Ixx,
+           double Iyy,
+           double Izz,
+           double Xdu,
+           double Ydv,
+           double Zdw,
+           double Kdp,
+           double Mdq,
+           double Ndr);
 
   Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass);
 
@@ -79,8 +95,18 @@ class Damping
 public:
   Damping() = default;
 
-  Damping(double Xu, double Yv, double Zw, double Kp, double Mq, double Nr, double Xuu, double Yvv,
-          double Zww, double Kpp, double Mqq, double Nrr);
+  Damping(double Xu,
+          double Yv,
+          double Zw,
+          double Kp,
+          double Mq,
+          double Nr,
+          double Xuu,
+          double Yvv,
+          double Zww,
+          double Kpp,
+          double Mqq,
+          double Nrr);
 
   Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic);
 
@@ -96,7 +122,9 @@ class RestoringForces
 public:
   RestoringForces() = default;
 
-  RestoringForces(double weight, double buoyancy, Eigen::Vector3d center_of_buoyancy,
+  RestoringForces(double weight,
+                  double buoyancy,
+                  Eigen::Vector3d center_of_buoyancy,
                   Eigen::Vector3d center_of_gravity);
 
   [[nodiscard]] Eigen::Vector6d calculateRestoringForcesVector(const Eigen::Matrix3d & rot) const;
