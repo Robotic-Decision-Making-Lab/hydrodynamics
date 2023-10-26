@@ -11,7 +11,7 @@ BraceWrapping:
   AfterStruct: true
   AfterEnum: true
 ColumnLimit: 100
-BinPackParameters: false
+BinPackParameters: true
 BinPackArguments: false
 ConstructorInitializerIndentWidth: 0
 ContinuationIndentWidth: 2
