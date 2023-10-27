@@ -138,14 +138,43 @@ private:
 
 class CurrentEffects
 {
+public:
   CurrentEffects() = default;
 
-  CurrentEffects(Eigen::Vector6d velocity);
+  explicit CurrentEffects(Eigen::Vector6d velocity);
 
   [[nodiscard]] Eigen::Vector6d calculateCurrentEffectsVector(const Eigen::Matrix3d & rot) const;
 
 private:
   Eigen::Vector6d current_;
+};
+
+struct HydrodynamicParameters
+{
+  Inertia inertia;
+  Coriolis coriolis;
+  Damping damping;
+  RestoringForces restoring_forces;
+  CurrentEffects current_effects;
+
+  HydrodynamicParameters() = default;
+
+  HydrodynamicParameters(Inertia inertia,
+                         Coriolis coriolis,
+                         Damping damping,
+                         RestoringForces restoring_forces,
+                         CurrentEffects current_effects);
+
+  HydrodynamicParameters(double mass,
+                         double weight,
+                         double buoyancy,
+                         const Eigen::Vector3d & moments,
+                         const Eigen::Vector6d & added_mass,
+                         Eigen::Vector6d linear_damping,
+                         Eigen::Vector6d quadratic_damping,
+                         Eigen::Vector3d center_of_buoyancy,
+                         Eigen::Vector3d center_of_gravity,
+                         Eigen::Vector6d current_velocity);
 };
 
 }  // namespace hydrodynamics

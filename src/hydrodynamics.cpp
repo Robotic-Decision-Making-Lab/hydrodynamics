@@ -204,4 +204,35 @@ Eigen::Vector6d CurrentEffects::calculateCurrentEffectsVector(const Eigen::Matri
   return rotated_current_effects;
 }
 
+HydrodynamicParameters::HydrodynamicParameters(Inertia inertia,
+                                               Coriolis coriolis,
+                                               Damping damping,
+                                               RestoringForces restoring_forces,
+                                               CurrentEffects current_effects)
+: inertia(std::move(inertia)),
+  coriolis(std::move(coriolis)),
+  damping(std::move(damping)),
+  restoring_forces(std::move(restoring_forces)),
+  current_effects(std::move(current_effects))
+{
+}
+
+HydrodynamicParameters::HydrodynamicParameters(double mass,
+                                               double weight,
+                                               double buoyancy,
+                                               const Eigen::Vector3d & moments,
+                                               const Eigen::Vector6d & added_mass,
+                                               Eigen::Vector6d linear_damping,
+                                               Eigen::Vector6d quadratic_damping,
+                                               Eigen::Vector3d center_of_buoyancy,
+                                               Eigen::Vector3d center_of_gravity,
+                                               Eigen::Vector6d current_velocity)
+{
+  inertia = Inertia(mass, moments, added_mass);
+  coriolis = Coriolis(mass, moments, added_mass);
+  damping = Damping(linear_damping, quadratic_damping);
+  restoring_forces = RestoringForces(weight, buoyancy, center_of_buoyancy, center_of_gravity);
+  current_effects = CurrentEffects(current_velocity);
+}
+
 }  // namespace hydrodynamics

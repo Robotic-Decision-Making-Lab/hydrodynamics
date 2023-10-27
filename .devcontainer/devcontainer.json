@@ -11,7 +11,7 @@
         "files.insertFinalNewline": true,
         "files.trimTrailingWhitespace": true,
         "editor.formatOnSave": true,
-        "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",
+        "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
         "C_Cpp.clang_format_fallbackStyle": "Google",
         "C_Cpp.codeAnalysis.clangTidy.enabled": true,
         "C_Cpp.codeAnalysis.clangTidy.runAutomatically": true,
@@ -32,7 +32,8 @@
         "cschlosser.doxdocgen",
         "ms-vscode.cpptools",
         "josetr.cmake-language-support-vscode",
-        "xaver.clang-format"
+        "xaver.clang-format",
+        "esbenp.prettier-vscode"
       ]
     }
   }
