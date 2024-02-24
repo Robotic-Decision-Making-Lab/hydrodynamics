@@ -20,6 +20,8 @@
 
 #include "hydrodynamics.hpp"
 
+#include <Eigen/Dense>
+
 namespace hydrodynamics
 {
 
@@ -35,35 +37,32 @@ Eigen::Matrix3d makeSkewSymmetricMatrix(const Eigen::Vector3d & v)
 
 }  // namespace
 
-Inertia::Inertia(double mass,
-                 double Ixx,
-                 double Iyy,
-                 double Izz,
-                 double Xdu,
-                 double Ydv,
-                 double Zdw,
-                 double Kdp,
-                 double Mdq,
-                 double Ndr)
+Inertia::Inertia(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv, double Zdw, double Kdp,
+                 double Mdq, double Ndr)
 {
+  // Construct the rigid body inertia matrix
   Eigen::Matrix6d rigid_body_mat_ = Eigen::Matrix6d::Zero();
   rigid_body_mat_.topLeftCorner(3, 3) = mass * Eigen::Matrix3d::Identity();
-  rigid_body_mat_.bottomRightCorner(3, 3) =
-    Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix();
+  rigid_body_mat_.bottomRightCorner(3, 3) = Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix();
 
+  // Construct the added mass matrix
   added_mass_mat_ = -Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr).asDiagonal().toDenseMatrix();
 
+  // The complete mass matrix is the sum of the rigid body and added mass matrices
   mass_mat_ = rigid_body_mat_ + added_mass_mat_;
 }
 
-Inertia::Inertia(double mass, const Eigen::Vector3d & moments, const Eigen::Vector6d & added_mass)
+Inertia::Inertia(double mass, Eigen::Vector3d moments, Eigen::Vector6d added_mass)
 {
+  // Construct the rigid body inertia matrix
   Eigen::Matrix6d rigid_body_mat_ = Eigen::Matrix6d::Zero();
   rigid_body_mat_.topLeftCorner(3, 3) = mass * Eigen::Matrix3d::Identity();
   rigid_body_mat_.bottomRightCorner(3, 3) = moments.asDiagonal().toDenseMatrix();
 
+  // Construct the added mass matrix
   added_mass_mat_ = -added_mass.asDiagonal().toDenseMatrix();
 
+  // The complete mass matrix is the sum of the rigid body and added mass matrices
   mass_mat_ = rigid_body_mat_ + added_mass_mat_;
 }
 
@@ -73,31 +72,20 @@ Eigen::Matrix6d Inertia::getAddedMassMatrix() const { return added_mass_mat_; }
 
 Eigen::Matrix6d Inertia::getMassMatrix() const { return mass_mat_; }
 
-Coriolis::Coriolis(double mass,
-                   double Ixx,
-                   double Iyy,
-                   double Izz,
-                   double Xdu,
-                   double Ydv,
-                   double Zdw,
-                   double Kdp,
-                   double Mdq,
-                   double Ndr)
+Coriolis::Coriolis(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv, double Zdw, double Kdp,
+                   double Mdq, double Ndr)
 : mass_(mass),
   moments_(Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix()),
   added_mass_coeff_(Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr))
 {
 }
 
-Coriolis::Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass)
-: mass_(mass),
-  moments_(moments.asDiagonal().toDenseMatrix()),
-  added_mass_coeff_(std::move(added_mass))
+Coriolis::Coriolis(double mass, Eigen::Vector3d moments, Eigen::Vector6d added_mass)
+: mass_(mass), moments_(moments.asDiagonal().toDenseMatrix()), added_mass_coeff_(std::move(added_mass))
 {
 }
 
-Eigen::Matrix6d Coriolis::calculateRigidBodyCoriolisMatrix(
-  const Eigen::Vector3d & angular_velocity) const
+Eigen::Matrix6d Coriolis::calculateRigidBodyCoriolisMatrix(const Eigen::Vector3d & angular_velocity) const
 {
   Eigen::Matrix6d coriolis = Eigen::Matrix6d::Zero();
 
@@ -113,15 +101,11 @@ Eigen::Matrix6d Coriolis::calculateAddedCoriolisMatrix(const Eigen::Vector6d & v
 {
   Eigen::Matrix6d coriolis = Eigen::Matrix6d::Zero();
 
-  Eigen::Matrix3d linear_vel =
-    makeSkewSymmetricMatrix(Eigen::Vector3d(added_mass_coeff_(0) * velocity(0),
-                                            added_mass_coeff_(1) * velocity(1),
-                                            added_mass_coeff_(2) * velocity(2)));
+  Eigen::Matrix3d linear_vel = makeSkewSymmetricMatrix(Eigen::Vector3d(
+    added_mass_coeff_(0) * velocity(0), added_mass_coeff_(1) * velocity(1), added_mass_coeff_(2) * velocity(2)));
 
-  Eigen::Matrix3d angular_vel =
-    makeSkewSymmetricMatrix(Eigen::Vector3d(added_mass_coeff_(3) * velocity(3),
-                                            added_mass_coeff_(4) * velocity(4),
-                                            added_mass_coeff_(5) * velocity(5)));
+  Eigen::Matrix3d angular_vel = makeSkewSymmetricMatrix(Eigen::Vector3d(
+    added_mass_coeff_(3) * velocity(3), added_mass_coeff_(4) * velocity(4), added_mass_coeff_(5) * velocity(5)));
 
   coriolis.topRightCorner(3, 3) = linear_vel;
   coriolis.bottomLeftCorner(3, 3) = linear_vel;
@@ -132,22 +116,11 @@ Eigen::Matrix6d Coriolis::calculateAddedCoriolisMatrix(const Eigen::Vector6d & v
 
 Eigen::Matrix6d Coriolis::calculateCoriolisMatrix(const Eigen::Vector6d & velocity) const
 {
-  return calculateRigidBodyCoriolisMatrix(velocity.bottomRows(3)) +
-         calculateAddedCoriolisMatrix(velocity);
+  return calculateRigidBodyCoriolisMatrix(velocity.bottomRows(3)) + calculateAddedCoriolisMatrix(velocity);
 }
 
-Damping::Damping(double Xu,
-                 double Yv,
-                 double Zw,
-                 double Kp,
-                 double Mq,
-                 double Nr,
-                 double Xuu,
-                 double Yvv,
-                 double Zww,
-                 double Kpp,
-                 double Mqq,
-                 double Nrr)
+Damping::Damping(double Xu, double Yv, double Zw, double Kp, double Mq, double Nr, double Xuu, double Yvv, double Zww,
+                 double Kpp, double Mqq, double Nrr)
 : linear_coeff_(Eigen::Vector6d(Xu, Yv, Zw, Kp, Mq, Nr)),
   quadratic_coeff_(Eigen::Vector6d(Xuu, Yvv, Zww, Kpp, Mqq, Nrr))
 {
@@ -160,79 +133,19 @@ Damping::Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic)
 
 Eigen::Matrix6d Damping::calculateDampingMatrix(const Eigen::Vector6d & velocity) const
 {
-  Eigen::Matrix6d quadratic = -(quadratic_coeff_.asDiagonal().toDenseMatrix() * velocity.cwiseAbs())
-                                 .asDiagonal()
-                                 .toDenseMatrix();
+  Eigen::Matrix6d quadratic =
+    -(quadratic_coeff_.asDiagonal().toDenseMatrix() * velocity.cwiseAbs()).asDiagonal().toDenseMatrix();
 
   return -linear_coeff_.asDiagonal().toDenseMatrix() + quadratic;
 }
 
-RestoringForces::RestoringForces(double weight,
-                                 double buoyancy,
-                                 Eigen::Vector3d center_of_buoyancy,
+RestoringForces::RestoringForces(double weight, double buoyancy, Eigen::Vector3d center_of_buoyancy,
                                  Eigen::Vector3d center_of_gravity)
 : weight_(weight),
   buoyancy_(buoyancy),
   center_of_buoyancy_(std::move(center_of_buoyancy)),
   center_of_gravity_(std::move(center_of_gravity))
 {
-}
-
-Eigen::Vector6d RestoringForces::calculateRestoringForcesVector(const Eigen::Matrix3d & rot) const
-{
-  const Eigen::Vector3d fg(0, 0, weight_);
-  const Eigen::Vector3d fb(0, 0, -buoyancy_);
-
-  Eigen::Vector6d g_rb;
-
-  g_rb.topRows(3) = rot * (fg + fb);
-  g_rb.bottomRows(3) = center_of_gravity_.cross(rot * fg) + center_of_buoyancy_.cross(rot * fb);
-
-  g_rb *= -1;
-
-  return g_rb;
-}
-
-CurrentEffects::CurrentEffects(Eigen::Vector6d velocity) : current_(std::move(velocity)) {}
-
-Eigen::Vector6d CurrentEffects::calculateCurrentEffectsVector(const Eigen::Matrix3d & rot) const
-{
-  Eigen::Vector6d rotated_current_effects;
-  rotated_current_effects.topRows(3) = rot * current_.topRows(3);
-  rotated_current_effects.bottomRows(3) = rot * current_.bottomRows(3);
-
-  return rotated_current_effects;
-}
-
-HydrodynamicParameters::HydrodynamicParameters(Inertia inertia,
-                                               Coriolis coriolis,
-                                               Damping damping,
-                                               RestoringForces restoring_forces,
-                                               CurrentEffects current_effects)
-: inertia(std::move(inertia)),
-  coriolis(std::move(coriolis)),
-  damping(std::move(damping)),
-  restoring_forces(std::move(restoring_forces)),
-  current_effects(std::move(current_effects))
-{
-}
-
-HydrodynamicParameters::HydrodynamicParameters(double mass,
-                                               double weight,
-                                               double buoyancy,
-                                               const Eigen::Vector3d & moments,
-                                               const Eigen::Vector6d & added_mass,
-                                               Eigen::Vector6d linear_damping,
-                                               Eigen::Vector6d quadratic_damping,
-                                               Eigen::Vector3d center_of_buoyancy,
-                                               Eigen::Vector3d center_of_gravity,
-                                               Eigen::Vector6d current_velocity)
-{
-  inertia = Inertia(mass, moments, added_mass);
-  coriolis = Coriolis(mass, moments, added_mass);
-  damping = Damping(linear_damping, quadratic_damping);
-  restoring_forces = RestoringForces(weight, buoyancy, center_of_buoyancy, center_of_gravity);
-  current_effects = CurrentEffects(current_velocity);
 }
 
 }  // namespace hydrodynamics

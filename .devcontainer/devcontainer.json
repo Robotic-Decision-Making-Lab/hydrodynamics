@@ -16,7 +16,7 @@
         "C_Cpp.codeAnalysis.clangTidy.enabled": true,
         "C_Cpp.codeAnalysis.clangTidy.runAutomatically": true,
         "clang-format.executable": "/usr/bin/clang-format-14",
-        "editor.rulers": [100],
+        "editor.rulers": [120],
         "editor.tabSize": 2,
         "[cpp]": {
           "editor.defaultFormatter": "xaver.clang-format"

@@ -10,9 +10,8 @@ BraceWrapping:
   AfterNamespace: true
   AfterStruct: true
   AfterEnum: true
-ColumnLimit: 100
-BinPackParameters: false
-BinPackArguments: false
+ColumnLimit: 120
+BinPackParameters: true
 ConstructorInitializerIndentWidth: 0
 ContinuationIndentWidth: 2
 DerivePointerAlignment: false
