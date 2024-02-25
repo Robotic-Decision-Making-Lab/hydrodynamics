@@ -199,7 +199,7 @@ private:
 };
 
 /**
- * @brief A wrapper for the restoring forces acting on the vehicle, including gravity and bouyancy.
+ * @brief A wrapper for the restoring forces acting on the vehicle, including gravity and buoyancy.
  */
 class RestoringForces
 {
