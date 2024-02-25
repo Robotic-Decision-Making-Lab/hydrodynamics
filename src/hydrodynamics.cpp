@@ -148,4 +148,19 @@ RestoringForces::RestoringForces(double weight, double buoyancy, Eigen::Vector3d
 {
 }
 
+Eigen::Vector6d RestoringForces::calculateRestoringForcesVector(const Eigen::Matrix3d & rot) const
+{
+  const Eigen::Vector3d fg(0, 0, weight_);
+  const Eigen::Vector3d fb(0, 0, -buoyancy_);
+
+  Eigen::Vector6d g_rb;
+
+  g_rb.topRows(3) = rot * (fg + fb);
+  g_rb.bottomRows(3) = center_of_gravity_.cross(rot * fg) + center_of_buoyancy_.cross(rot * fb);
+
+  g_rb *= -1;
+
+  return g_rb;
+}
+
 }  // namespace hydrodynamics

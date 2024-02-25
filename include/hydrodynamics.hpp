@@ -21,7 +21,6 @@
 #pragma once
 
 #include <Eigen/Dense>
-#include <optional>
 
 #include "eigen.hpp"
 
