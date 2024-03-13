@@ -21,7 +21,7 @@ add_library(hydrodynamics SHARED
 
 target_include_directories(hydrodynamics
   PUBLIC
-    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:include/hydrodynamics>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     ${EIGEN3_INCLUDE_DIR}
 )
@@ -43,7 +43,7 @@ install(
 
 install(
   TARGETS hydrodynamics
-  EXPORT "export_hydrodynamics"
+  EXPORT export_hydrodynamics
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -60,7 +60,7 @@ if(BUILD_TESTING)
   set(ament_cmake_flake8_FOUND TRUE)
 endif()
 
-ament_export_targets("export_hydrodynamics" HAS_LIBRARY_TARGET)
+ament_export_targets(export_hydrodynamics HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 ament_package()
