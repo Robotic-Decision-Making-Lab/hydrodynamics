@@ -28,50 +28,85 @@ namespace hydrodynamics
 {
 
 /**
- * @brief A wrapper for inertial parameters including added mass and rigid body inertia.
+ * @brief This class provides functionality to store and compute the system inertia matrix for a submerged body.
+ *
+ * @note The inertia matrix is based off of Fossen's equations of motion for marine vehicles [1] and includes both the
+ * rigid body inertia matrix and the added mass matrix.
+ *
+ * [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
+ *     United Kingdom: Wiley, 1994.
  */
 class Inertia
 {
 public:
   /**
-   * @brief Construct a new wrapper for inertial parameters including added mass and rigid body inertia.
+   * @brief Constructor.
    *
-   * @param mass The mass of the vehicle.
-   * @param Ixx The moment of inertia about the x-axis.
-   * @param Iyy The moment of inertia about the y-axis.
-   * @param Izz The moment of inertia about the z-axis.
-   * @param Xdu The added mass coefficient in the surge direction.
-   * @param Ydv The added mass coefficient in the sway direction.
-   * @param Zdw The added mass coefficient in the heave direction.
-   * @param Kdp The added mass coefficient in the roll direction.
-   * @param Mdq The added mass coefficient in the pitch direction.
-   * @param Ndr The added mass coefficient in the yaw direction.
+   * @param mass Mass of the body [kg].
+   * @param Ixx Moment about the x-axis [kgm^2].
+   * @param Iyy Moment about the y-axis [kgm^2].
+   * @param Izz Moment about the z-axis [kgm^2].
+   * @param Xdu Added mass in the surge direction [kg].
+   * @param Ydv Added mass in the sway direction [kg].
+   * @param Zdw Added mass in the heave direction [kg].
+   * @param Kdp Added mass in the roll direction [kgm^2].
+   * @param Mdq Added mass in the pitch direction [kgm^2].
+   * @param Ndr Added mass in the yaw direction [kgm^2].
    */
   Inertia(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv, double Zdw, double Kdp, double Mdq,
           double Ndr);
 
   /**
-   * @brief Construct a new wrapper for inertial parameters including added mass and rigid body inertia.
+   * @brief Constructor.
    *
-   * @param mass The mass of the vehicle.
-   * @param moments The moments of inertia about the x, y, and z axes.
-   * @param added_mass The added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
+   * @param mass Mass of the body [kg].
+   * @param Ixx Moment about the x-axis [kgm^2].
+   * @param Ixy Coupled moment about the x and y axes [kgm^2].
+   * @param Ixz Coupled moment about the x and z axes [kgm^2].
+   * @param Iyy Moment about the y-axis [kgm^2].
+   * @param Iyz Coupled moment about the y and z axes [kgm^2].
+   * @param Izz Moment about the z-axis [kgm^2].
+   * @param Xdu Added mass in the surge direction [kg].
+   * @param Ydv Added mass in the sway direction [kg].
+   * @param Zdw Added mass in the heave direction [kg].
+   * @param Kdp Added mass in the roll direction [kgm^2].
+   * @param Mdq Added mass in the pitch direction [kgm^2].
+   * @param Ndr Added mass in the yaw direction [kgm^2].
+   */
+  Inertia(double mass, double Ixx, double Ixy, double Ixz, double Iyy, double Iyz, double Izz, double Xdu, double Ydv,
+          double Zdw, double Kdp, double Mdq, double Ndr);
+
+  /**
+   * @brief Constructor.
+   *
+   * @param mass Mass of the body [kg].
+   * @param moments Moments about the x, y, and z axes, respectively [kgm^2].
+   * @param added_mass Added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions [kg, kgm^2].
    */
   Inertia(double mass, Eigen::Vector3d moments, Eigen::Vector6d added_mass);
+
+  /**
+   * @brief Constructor.
+   *
+   * @param mass Mass of the body [kg].
+   * @param moments Moments of inertia [kgm^2].
+   * @param added_mass Added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions [kg, kgm^2].
+   */
+  Inertia(double mass, Eigen::Matrix3d moments, Eigen::Vector6d added_mass);
 
   /**
    * @brief Get the rigid body inertia matrix.
    *
    * @return Eigen::Matrix6d
    */
-  [[nodiscard]] Eigen::Matrix6d getRigidBodyInertiaMatrix() const;
+  [[nodiscard]] Eigen::Matrix6d getRigidBodyInertiaMatrix() const { return rigid_body_inertia_mat_; }
 
   /**
    * @brief Get the added mass matrix.
    *
    * @return Eigen::Matrix6d
    */
-  [[nodiscard]] Eigen::Matrix6d getAddedMassMatrix() const;
+  [[nodiscard]] Eigen::Matrix6d getAddedMassMatrix() const { return added_mass_mat_; };
 
   /**
    * @brief Get the mass matrix.
@@ -80,50 +115,85 @@ public:
    *
    * @return Eigen::Matrix6d
    */
-  [[nodiscard]] Eigen::Matrix6d getMassMatrix() const;
+  [[nodiscard]] Eigen::Matrix6d getSystemInertiaMatrix() const { return inertia_mat_; }
 
 private:
-  Eigen::Matrix6d rigid_body_mat_;
+  Eigen::Matrix6d rigid_body_inertia_mat_;
   Eigen::Matrix6d added_mass_mat_;
-  Eigen::Matrix6d mass_mat_;
+  Eigen::Matrix6d inertia_mat_;
 };
 
 /**
- * @brief A wrapper for Coriolis and centripetal force parameters.
+ * @brief This class provides functionality to store and compute the system Coriolis matrix for a submerged body.
+ *
+ * @note The Coriolis matrix is based off of Fossen's equations of motion for marine vehicles [1] and includes both the
+ * rigid body Coriolis matrix and the added mass Coriolis matrix.
+ *
+ * [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
+ *     United Kingdom: Wiley, 1994.
  */
 class Coriolis
 {
 public:
   /**
-   * @brief Construct a new wrapper for the Coriolis and centripetal force parameters.
+   * @brief Constructor.
    *
-   * @param mass The mass of the vehicle.
-   * @param Ixx The moment of inertia about the x-axis.
-   * @param Iyy The moment of inertia about the y-axis.
-   * @param Izz The moment of inertia about the z-axis.
-   * @param Xdu The added mass coefficient in the surge direction.
-   * @param Ydv The added mass coefficient in the sway direction.
-   * @param Zdw The added mass coefficient in the heave direction.
-   * @param Kdp The added mass coefficient in the roll direction.
-   * @param Mdq The added mass coefficient in the pitch direction.
-   * @param Ndr The added mass coefficient in the yaw direction.
+   * @param mass Mass of the body [kg].
+   * @param Ixx Moment about the x-axis [kgm^2].
+   * @param Iyy Moment about the y-axis [kgm^2].
+   * @param Izz Moment about the z-axis [kgm^2].
+   * @param Xdu Added mass in the surge direction [kg].
+   * @param Ydv Added mass in the sway direction [kg].
+   * @param Zdw Added mass in the heave direction [kg].
+   * @param Kdp Added mass in the roll direction [kgm^2].
+   * @param Mdq Added mass in the pitch direction [kgm^2].
+   * @param Ndr Added mass in the yaw direction [kgm^2].
    */
   Coriolis(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv, double Zdw, double Kdp, double Mdq,
            double Ndr);
 
   /**
-   * @brief Construct a new wrapper for the Coriolis and centripetal force parameters.
+   * @brief Constructor.
    *
-   * @param mass The mass of the vehicle.
-   * @param moments The moments of inertia about the x, y, and z axes.
-   * @param added_mass The added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
+   * @param mass Mass of the body [kg].
+   * @param Ixx Moment about the x-axis [kgm^2].
+   * @param Ixy Coupled moment about the x and y axes [kgm^2].
+   * @param Ixz Coupled moment about the x and z axes [kgm^2].
+   * @param Iyy Moment about the y-axis [kgm^2].
+   * @param Iyz Coupled moment about the y and z axes [kgm^2].
+   * @param Izz Moment about the z-axis [kgm^2].
+   * @param Xdu Added mass in the surge direction [kg].
+   * @param Ydv Added mass in the sway direction [kg].
+   * @param Zdw Added mass in the heave direction [kg].
+   * @param Kdp Added mass in the roll direction [kgm^2].
+   * @param Mdq Added mass in the pitch direction [kgm^2].
+   * @param Ndr Added mass in the yaw direction [kgm^2].
+   */
+  Coriolis(double mass, double Ixx, double Ixy, double Ixz, double Iyy, double Iyz, double Izz, double Xdu, double Ydv,
+           double Zdw, double Kdp, double Mdq, double Ndr);
+
+  /**
+   * @brief Constructor.
+   *
+   * @param mass Mass of the body [kg].
+   * @param moments Moments about the x, y, and z axes, respectively [kgm^2].
+   * @param added_mass Added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions [kg, kgm^2].
    */
   Coriolis(double mass, Eigen::Vector3d moments, Eigen::Vector6d added_mass);
 
   /**
+   * @brief Constructor.
+   *
+   * @param mass Mass of the body [kg].
+   * @param moments Moments of inertia [kgm^2].
+   * @param added_mass Added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions [kg, kgm^2].
+   */
+  Coriolis(double mass, Eigen::Matrix3d moments, Eigen::Matrix6d added_mass);
+
+  /**
    * @brief Calculate the rigid body Coriolis matrix.
    *
-   * @param angular_velocity The angular velocity of the vehicle.
+   * @param angular_velocity The angular velocity of the body.
    * @return Eigen::Matrix6d
    */
   [[nodiscard]] Eigen::Matrix6d calculateRigidBodyCoriolisMatrix(const Eigen::Vector3d & angular_velocity) const;
@@ -131,7 +201,7 @@ public:
   /**
    * @brief Calculate the added mass Coriolis matrix.
    *
-   * @param velocity The velocity of the vehicle.
+   * @param velocity The velocity of the body.
    * @return Eigen::Matrix6d
    */
   [[nodiscard]] Eigen::Matrix6d calculateAddedCoriolisMatrix(const Eigen::Vector6d & velocity) const;
@@ -141,7 +211,7 @@ public:
    *
    * @note This is the sum of the rigid body and added mass Coriolis matrices.
    *
-   * @param velocity The velocity of the vehicle.
+   * @param velocity The velocity of the body.
    * @return Eigen::Matrix6d
    */
   [[nodiscard]] Eigen::Matrix6d calculateCoriolisMatrix(const Eigen::Vector6d & velocity) const;
@@ -153,42 +223,57 @@ private:
 };
 
 /**
- * @brief A wrapper for the damping forces acting on the vehicle, including linear and quadratic damping coefficients.
+ * @brief This class provides functionality to store and compute the viscous damping matrix for a submerged body.
+ *
+ * @note The damping matrix is based off of Fossen's equations of motion for marine vehicles [1] and includes
+ * linear and quadratic damping.
+ *
+ * [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
+ *     United Kingdom: Wiley, 1994.
  */
 class Damping
 {
 public:
   /**
-   * @brief Construct a new wrapper for the damping coefficients.
+   * @brief Constructor.
    *
-   * @param Xu The linear damping coefficient in the surge direction.
-   * @param Yv The linear damping coefficient in the sway direction.
-   * @param Zw The linear damping coefficient in the heave direction.
-   * @param Kp The linear damping coefficient in the roll direction.
-   * @param Mq The linear damping coefficient in the pitch direction.
-   * @param Nr The linear damping coefficient in the yaw direction.
-   * @param Xuu The quadratic damping coefficient in the surge direction.
-   * @param Yvv The quadratic damping coefficient in the sway direction.
-   * @param Zww The quadratic damping coefficient in the heave direction.
-   * @param Kpp The quadratic damping coefficient in the roll direction.
-   * @param Mqq The quadratic damping coefficient in the pitch direction.
-   * @param Nrr The quadratic damping coefficient in the yaw direction.
+   * @param Xu Stability derivative, 1st order, surge component [kg]
+   * @param Yv Stability derivative, 1st order, sway component [kg]
+   * @param Zw Stability derivative, 1st order, heave component [kg]
+   * @param Kp Stability derivative, 1st order, roll component [kg/m]
+   * @param Mq Stability derivative, 1st order, pitch component [kg/m]
+   * @param Nr Stability derivative, 1st order, yaw component [kg/m]
+   * @param Xuu Stability derivative, 2nd order, surge component [kg/m]
+   * @param Yvv Stability derivative, 2nd order, sway component [kg/m]
+   * @param Zww Stability derivative, 2nd order, heave component [kg/m]
+   * @param Kpp Stability derivative, 2nd order, roll component [kg/m^2]
+   * @param Mqq Stability derivative, 2nd order, pitch component [kg/m^2]
+   * @param Nrr Stability derivative, 2nd order, yaw component [kg/m^2]
    */
   Damping(double Xu, double Yv, double Zw, double Kp, double Mq, double Nr, double Xuu, double Yvv, double Zww,
           double Kpp, double Mqq, double Nrr);
 
   /**
-   * @brief Construct a new wrapper for the damping coefficients.
+   * @brief Constructor.
    *
-   * @param linear The linear damping coefficients.
-   * @param quadratic The quadratic damping coefficients.
+   * @param linear Linear damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions [kg, kg/m].
+   * @param quadratic Quadratic damping coefficients in the surge, sway, heave, roll, pitch and yaw directions
+   *                  [kg/m, kg/m^2].
    */
   Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic);
 
   /**
+   * @brief Constructor.
+   *
+   * @param linear Linear damping coefficients, including coupling dissapative terms.
+   * @param quadratic Quadratic damping coefficients, including coupling dissapative terms.
+   */
+  Damping(Eigen::Matrix6d linear, Eigen::Matrix6d quadratic);
+
+  /**
    * @brief Calculate the damping matrix.
    *
-   * @param velocity The current velocity of the vehicle.
+   * @param velocity The current velocity of the body.
    * @return Eigen::Matrix6d
    */
   [[nodiscard]] Eigen::Matrix6d calculateDampingMatrix(const Eigen::Vector6d & velocity) const;
@@ -199,26 +284,32 @@ private:
 };
 
 /**
- * @brief A wrapper for the restoring forces acting on the vehicle, including gravity and buoyancy.
+ * @brief This class provides functionality to store and compute the restoring forces for a submerged body.
+ *
+ * @note The restoring forces implementation is based off of Fossen's equations of motion for marine vehicles [1], and
+ * includes the weight, buoyancy, center of buoyancy, and center of gravity.
+ *
+ * [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
+ *     United Kingdom: Wiley, 1994.
  */
 class RestoringForces
 {
 public:
   /**
-   * @brief Construct a wrapper for restoring force parameters.
+   * @brief Constructor.
    *
-   * @param weight The weight of the vehicle.
-   * @param buoyancy The buoyancy of the vehicle.
-   * @param center_of_buoyancy The center of buoyancy of the vehicle.
-   * @param center_of_gravity The center of gravity of the vehicle.
+   * @param weight Weight of the body (mass * gravity).
+   * @param buoyancy Buoyancy of the body (fluid displacement * gravity * water density).
+   * @param center_of_buoyancy Center of buoyancy of the body.
+   * @param center_of_gravity Center of gravity of the body.
    */
   RestoringForces(double weight, double buoyancy, Eigen::Vector3d center_of_buoyancy,
                   Eigen::Vector3d center_of_gravity);
 
   /**
-   * @brief Calculate the restoring forces acting on the vehicle.
+   * @brief Calculate the restoring forces acting on the body.
    *
-   * @param rotation The current rotation of the vehicle with respect to the inertial frame.
+   * @param rotation Current rotation of the body with respect to the inertial frame.
    * @return Eigen::Vector6d
    */
   [[nodiscard]] Eigen::Vector6d calculateRestoringForcesVector(const Eigen::Matrix3d & rotation) const;
@@ -229,5 +320,24 @@ private:
   Eigen::Vector3d center_of_buoyancy_;
   Eigen::Vector3d center_of_gravity_;
 };
+
+/**
+ * @brief A wrapper for the dynamic parameters of a submerged body.
+ */
+struct LinkParameters
+{
+  Inertia inertia;
+  Coriolis coriolis;
+  Damping damping;
+  RestoringForces restoring_forces;
+};
+
+LinkParameters parseLinkParametersFromSDF(const std::string & placeholder);
+
+LinkParameters parseLinkParametersFromURDF(const std::string & placeholder);
+
+std::unordered_map<std::string, LinkParameters> parseSystemParametersFromSDF(const std::string & placeholders);
+
+std::unordered_map<std::string, LinkParameters> parseSystemParametersFromURDF(const std::string & placeholder);
 
 }  // namespace hydrodynamics

@@ -37,21 +37,6 @@ Eigen::Matrix3d makeSkewSymmetricMatrix(const Eigen::Vector3d & v)
 
 }  // namespace
 
-Inertia::Inertia(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv, double Zdw, double Kdp,
-                 double Mdq, double Ndr)
-{
-  // Construct the rigid body inertia matrix
-  Eigen::Matrix6d rigid_body_mat_ = Eigen::Matrix6d::Zero();
-  rigid_body_mat_.topLeftCorner(3, 3) = mass * Eigen::Matrix3d::Identity();
-  rigid_body_mat_.bottomRightCorner(3, 3) = Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix();
-
-  // Construct the added mass matrix
-  added_mass_mat_ = -Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr).asDiagonal().toDenseMatrix();
-
-  // The complete mass matrix is the sum of the rigid body and added mass matrices
-  mass_mat_ = rigid_body_mat_ + added_mass_mat_;
-}
-
 Inertia::Inertia(double mass, Eigen::Vector3d moments, Eigen::Vector6d added_mass)
 {
   // Construct the rigid body inertia matrix
@@ -63,21 +48,21 @@ Inertia::Inertia(double mass, Eigen::Vector3d moments, Eigen::Vector6d added_mas
   added_mass_mat_ = -added_mass.asDiagonal().toDenseMatrix();
 
   // The complete mass matrix is the sum of the rigid body and added mass matrices
-  mass_mat_ = rigid_body_mat_ + added_mass_mat_;
+  inertia_mat_ = rigid_body_mat_ + added_mass_mat_;
 }
 
-Eigen::Matrix6d Inertia::getRigidBodyInertiaMatrix() const { return rigid_body_mat_; }
-
-Eigen::Matrix6d Inertia::getAddedMassMatrix() const { return added_mass_mat_; }
-
-Eigen::Matrix6d Inertia::getMassMatrix() const { return mass_mat_; }
-
-Coriolis::Coriolis(double mass, double Ixx, double Iyy, double Izz, double Xdu, double Ydv, double Zdw, double Kdp,
-                   double Mdq, double Ndr)
-: mass_(mass),
-  moments_(Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix()),
-  added_mass_coeff_(Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr))
+Inertia::Inertia(double mass, Eigen::Matrix3d moments, Eigen::Matrix6d added_mass)
 {
+  // Construct the rigid body inertia matrix
+  rigid_body_mat_ = Eigen::Matrix6d::Zero();
+  rigid_body_mat_.topLeftCorner(3, 3) = mass * Eigen::Matrix3d::Identity();
+  rigid_body_mat_.bottomRightCorner(3, 3) = moments;
+
+  // Construct the added mass matrix
+  added_mass_mat_ = -added_mass;
+
+  // The complete mass matrix is the sum of the rigid body and added mass matrices
+  inertia_mat_ = rigid_body_mat_ + added_mass_mat_;
 }
 
 Coriolis::Coriolis(double mass, Eigen::Vector3d moments, Eigen::Vector6d added_mass)
