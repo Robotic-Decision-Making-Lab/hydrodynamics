@@ -99,7 +99,7 @@ public:
    *
    * @return Eigen::Matrix6d
    */
-  [[nodiscard]] Eigen::Matrix6d getRigidBodyInertiaMatrix() const { return rigid_body_inertia_mat_; }
+  [[nodiscard]] Eigen::Matrix6d getRigidBodyInertiaMatrix() const { return rigid_body_mat_; }
 
   /**
    * @brief Get the added mass matrix.
@@ -118,7 +118,7 @@ public:
   [[nodiscard]] Eigen::Matrix6d getSystemInertiaMatrix() const { return inertia_mat_; }
 
 private:
-  Eigen::Matrix6d rigid_body_inertia_mat_;
+  Eigen::Matrix6d rigid_body_mat_;
   Eigen::Matrix6d added_mass_mat_;
   Eigen::Matrix6d inertia_mat_;
 };
@@ -188,7 +188,7 @@ public:
    * @param moments Moments of inertia [kgm^2].
    * @param added_mass Added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions [kg, kgm^2].
    */
-  Coriolis(double mass, Eigen::Matrix3d moments, Eigen::Matrix6d added_mass);
+  Coriolis(double mass, Eigen::Matrix3d moments, Eigen::Vector6d added_mass);
 
   /**
    * @brief Calculate the rigid body Coriolis matrix.
@@ -218,7 +218,7 @@ public:
 
 private:
   double mass_;
-  Eigen::Matrix3d moments_;
+  Eigen::Matrix3d moments_mat_;
   Eigen::Vector6d added_mass_coeff_;
 };
 
@@ -279,8 +279,8 @@ public:
   [[nodiscard]] Eigen::Matrix6d calculateDampingMatrix(const Eigen::Vector6d & velocity) const;
 
 private:
-  Eigen::Vector6d linear_coeff_;
-  Eigen::Vector6d quadratic_coeff_;
+  Eigen::Matrix6d linear_mat_;
+  Eigen::Matrix6d quadratic_mat_;
 };
 
 /**
@@ -324,20 +324,22 @@ private:
 /**
  * @brief A wrapper for the dynamic parameters of a submerged body.
  */
-struct LinkParameters
+struct LinkDynamics
 {
+  LinkDynamics(Inertia inertia, Coriolis coriolis, Damping damping, RestoringForces restoring_forces);
+
   Inertia inertia;
   Coriolis coriolis;
   Damping damping;
   RestoringForces restoring_forces;
 };
 
-LinkParameters parseLinkParametersFromSDF(const std::string & placeholder);
+LinkDynamics parseLinkDynamicsFromSDF(const std::string & link_name);
 
-LinkParameters parseLinkParametersFromURDF(const std::string & placeholder);
+LinkDynamics parseLinkDynamicsFromURDF(const std::string & placeholder);
 
-std::unordered_map<std::string, LinkParameters> parseSystemParametersFromSDF(const std::string & placeholders);
+std::unordered_map<std::string, LinkDynamics> parseSystemDynamicsFromSDF(const std::string & placeholders);
 
-std::unordered_map<std::string, LinkParameters> parseSystemParametersFromURDF(const std::string & placeholder);
+std::unordered_map<std::string, LinkDynamics> parseSystemDynamicsFromURDF(const std::string & placeholder);
 
 }  // namespace hydrodynamics
