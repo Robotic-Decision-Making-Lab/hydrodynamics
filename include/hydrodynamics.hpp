@@ -265,15 +265,15 @@ public:
   /**
    * @brief Constructor.
    *
-   * @param linear Linear damping coefficients, including coupling dissapative terms.
-   * @param quadratic Quadratic damping coefficients, including coupling dissapative terms.
+   * @param linear Linear damping coefficients, including coupling dissapative terms [kg, kg/m].
+   * @param quadratic Quadratic damping coefficients, including coupling dissapative terms [kg/m, kg/m^2].
    */
   Damping(Eigen::Matrix6d linear, Eigen::Matrix6d quadratic);
 
   /**
    * @brief Calculate the damping matrix.
    *
-   * @param velocity The current velocity of the body.
+   * @param velocity The current velocity of the body [m/s].
    * @return Eigen::Matrix6d
    */
   [[nodiscard]] Eigen::Matrix6d calculateDampingMatrix(const Eigen::Vector6d & velocity) const;
@@ -333,13 +333,5 @@ struct LinkDynamics
   Damping damping;
   RestoringForces restoring_forces;
 };
-
-LinkDynamics parseLinkDynamicsFromSDF(const std::string & link_name);
-
-LinkDynamics parseLinkDynamicsFromURDF(const std::string & placeholder);
-
-std::unordered_map<std::string, LinkDynamics> parseSystemDynamicsFromSDF(const std::string & placeholders);
-
-std::unordered_map<std::string, LinkDynamics> parseSystemDynamicsFromURDF(const std::string & placeholder);
 
 }  // namespace hydrodynamics
