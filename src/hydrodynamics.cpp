@@ -155,8 +155,10 @@ Eigen::Vector6d RestoringForces::calculateRestoringForcesVector(const Eigen::Mat
 
   Eigen::Vector6d g_rb;
 
-  g_rb.topRows(3) = rot * (fg + fb);
-  g_rb.bottomRows(3) = center_of_gravity_.cross(rot * fg) + center_of_buoyancy_.cross(rot * fb);
+  const Eigen::Matrix3d rot_t = rot.transpose();
+
+  g_rb.topRows(3) = rot_t * (fg + fb);
+  g_rb.bottomRows(3) = center_of_gravity_.cross(rot_t * fg) + center_of_buoyancy_.cross(rot_t * fb);
 
   g_rb *= -1;
 
