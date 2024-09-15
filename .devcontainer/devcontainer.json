@@ -1,39 +1,25 @@
 {
-  "name": "Hydrodynamics Dev Container",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-  "remoteUser": "rdml",
+  "name": "ROS 2 NVIDIA Dev Container",
+  "dockerFile": "Dockerfile",
+  "context": "../",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/ubuntu/ws_ros/src/auv_controllers,type=bind",
+  "workspaceFolder": "/home/ubuntu/ws_ros/src/auv_controllers",
+  "remoteUser": "ubuntu",
   "customizations": {
     "vscode": {
-      "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "files.insertFinalNewline": true,
-        "files.trimTrailingWhitespace": true,
-        "editor.formatOnSave": true,
-        "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
-        "C_Cpp.clang_format_fallbackStyle": "Google",
-        "C_Cpp.codeAnalysis.clangTidy.enabled": true,
-        "C_Cpp.codeAnalysis.clangTidy.runAutomatically": true,
-        "clang-format.executable": "/usr/bin/clang-format-14",
-        "editor.rulers": [120],
-        "editor.tabSize": 2,
-        "[cpp]": {
-          "editor.defaultFormatter": "xaver.clang-format"
-        },
-        "search.exclude": {
-          "**/build": true,
-          "**/install": true,
-          "**/log": true
-        }
-      },
       "extensions": [
         "ms-azuretools.vscode-docker",
-        "cschlosser.doxdocgen",
+        "ms-python.python",
+        "njpwerner.autodocstring",
         "ms-vscode.cpptools",
-        "josetr.cmake-language-support-vscode",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "smilerobotics.urdf",
+        "DavidAnson.vscode-markdownlint",
+        "esbenp.prettier-vscode",
         "xaver.clang-format",
-        "esbenp.prettier-vscode"
+        "charliermarsh.ruff",
+        "ms-vscode.cmake-tools"
       ]
     }
   }

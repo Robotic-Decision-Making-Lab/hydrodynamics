@@ -5,49 +5,32 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(THIS_PACKAGE_INCLUDE_DEPENDS
-  rclcpp
-  Eigen3
-)
-
 find_package(ament_cmake REQUIRED)
-foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
-  find_package(${Dependency} REQUIRED)
-endforeach()
+find_package(Eigen3 REQUIRED)
 
-add_library(hydrodynamics SHARED
-  src/hydrodynamics.cpp
-)
+add_library(hydrodynamics SHARED)
 
-target_include_directories(hydrodynamics
+target_sources(hydrodynamics
+  PRIVATE
+    src/hydrodynamics.cpp
   PUBLIC
-    $<INSTALL_INTERFACE:include/hydrodynamics>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    ${EIGEN3_INCLUDE_DIR}
-)
-target_compile_features(hydrodynamics PUBLIC cxx_std_17)
-target_link_libraries(hydrodynamics
-  PUBLIC
-    ${rclcpp_LIBRARIES}
+    FILE_SET HEADERS
+    BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+    FILES
+      ${CMAKE_CURRENT_SOURCE_DIR}/include/hydrodynamics/hydrodynamics.hpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/include/hydrodynamics/eigen.hpp
 )
 
-ament_target_dependencies(hydrodynamics
-  PUBLIC
-    rclcpp
-)
-
-install(
-  DIRECTORY include/
-  DESTINATION include/hydrodynamics
-)
+target_compile_features(hydrodynamics PUBLIC cxx_std_20)
+target_link_libraries(hydrodynamics Eigen3::Eigen)
 
 install(
   TARGETS hydrodynamics
   EXPORT export_hydrodynamics
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION include
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  FILE_SET HEADERS
 )
 
 if(BUILD_TESTING)
@@ -61,6 +44,6 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_targets(export_hydrodynamics HAS_LIBRARY_TARGET)
-ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_export_dependencies(Eigen3)
 
 ament_package()

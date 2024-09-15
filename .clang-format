@@ -1,19 +1,30 @@
 ---
 Language: Cpp
 BasedOnStyle: Google
-
-AccessModifierOffset: -2
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterClass: true
-  AfterFunction: true
-  AfterNamespace: true
-  AfterStruct: true
-  AfterEnum: true
 ColumnLimit: 120
-BinPackParameters: true
+MaxEmptyLinesToKeep: 1
+
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+AccessModifierOffset: -2
+AlignAfterOpenBracket: AlwaysBreak
 ConstructorInitializerIndentWidth: 0
 ContinuationIndentWidth: 2
 DerivePointerAlignment: false
+AllowAllParametersOfDeclarationOnNextLine: false
 PointerAlignment: Middle
-ReflowComments: false
+PackConstructorInitializers: Never
+BinPackArguments: false
+BinPackParameters: false
+
+# Configure brace wrapping cases
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true

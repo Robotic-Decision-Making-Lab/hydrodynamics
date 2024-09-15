@@ -1,0 +1,32 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CLANG_TIDY: true
+
+jobs:
+  test:
+    name: Test Implementation
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - ROS_DISTRO: rolling
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ROS Industrial CI
+        uses: ros-industrial/industrial_ci@master
+        env:
+          ROS_DISTRO: ${{ matrix.env.ROS_DISTRO }}
+          CXXFLAGS: -Wall -Wextra -Wpedantic
+          CLANG_TIDY: true
