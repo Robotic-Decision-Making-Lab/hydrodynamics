@@ -13,16 +13,19 @@ add_library(hydrodynamics SHARED)
 target_sources(hydrodynamics
   PRIVATE
     src/hydrodynamics.cpp
-  PUBLIC
-    FILE_SET HEADERS
-    BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-    FILES
-      ${CMAKE_CURRENT_SOURCE_DIR}/include/hydrodynamics/hydrodynamics.hpp
-      ${CMAKE_CURRENT_SOURCE_DIR}/include/hydrodynamics/eigen.hpp
 )
-
+target_include_directories(hydrodynamics
+  PUBLIC
+    $<INSTALL_INTERFACE:include/hydrodynamics>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
 target_compile_features(hydrodynamics PUBLIC cxx_std_20)
 target_link_libraries(hydrodynamics Eigen3::Eigen)
+
+install(
+  DIRECTORY include/
+  DESTINATION include/hydrodynamics
+)
 
 install(
   TARGETS hydrodynamics
@@ -30,7 +33,6 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  FILE_SET HEADERS
 )
 
 if(BUILD_TESTING)
