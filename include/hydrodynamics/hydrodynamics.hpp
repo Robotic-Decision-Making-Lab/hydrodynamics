@@ -46,7 +46,7 @@ struct Inertia
     double Kdp,
     double Mdq,
     double Ndr,
-    Eigen::Vector3d center_of_gravity);
+    const Eigen::Vector3d & center_of_gravity);
 
   /// Create a new wrapper for inertial parameters (including added mass and rigid body inertia) using:
   /// - the mass of the vehicle,
@@ -56,7 +56,7 @@ struct Inertia
     double mass,
     const Eigen::Vector3d & moments,
     const Eigen::Vector6d & added_mass,
-    Eigen::Vector3d center_of_gravity);
+    const Eigen::Vector3d & center_of_gravity);
 
   Eigen::Matrix6d rigid_body_matrix;
   Eigen::Matrix6d added_mass_matrix;
