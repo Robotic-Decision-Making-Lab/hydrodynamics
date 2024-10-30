@@ -62,9 +62,6 @@ Inertia::Inertia(
 
   // The complete mass matrix is the sum of the rigid body and added mass matrices
   mass_matrix = rigid_body_matrix + added_mass_matrix;
-
-  // Set the center of gravity
-  this->center_of_gravity = std::move(center_of_gravity);
 }
 
 Inertia::Inertia(
@@ -85,9 +82,6 @@ Inertia::Inertia(
 
   // The complete mass matrix is the sum of the rigid body and added mass matrices
   mass_matrix = rigid_body_matrix + added_mass_matrix;
-
-  // Set the center of gravity
-  this->center_of_gravity = std::move(center_of_gravity);
 }
 
 Coriolis::Coriolis(
