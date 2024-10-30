@@ -45,17 +45,23 @@ struct Inertia
     double Zdw,
     double Kdp,
     double Mdq,
-    double Ndr);
+    double Ndr,
+    Eigen::Vector3d center_of_gravity);
 
   /// Create a new wrapper for inertial parameters (including added mass and rigid body inertia) using:
   /// - the mass of the vehicle,
   /// - the moments of inertia about the x, y, and z axes,
   /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
-  Inertia(double mass, const Eigen::Vector3d & moments, const Eigen::Vector6d & added_mass);
+  Inertia(
+    double mass,
+    const Eigen::Vector3d & moments,
+    const Eigen::Vector6d & added_mass,
+    Eigen::Vector3d center_of_gravity);
 
   Eigen::Matrix6d rigid_body_matrix;
   Eigen::Matrix6d added_mass_matrix;
   Eigen::Matrix6d mass_matrix;
+  Eigen::Vector3d center_of_gravity;
 };
 
 struct Coriolis
@@ -76,13 +82,14 @@ struct Coriolis
     double Zdw,
     double Kdp,
     double Mdq,
-    double Ndr);
+    double Ndr,
+    Eigen::Vector3d center_of_gravity);
 
   /// Create a new wrapper for the Coriolis and centripetal force parameters using:
   /// - the mass of the vehicle,
   /// - the moments of inertia about the x, y, and z axes,
   /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
-  Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass);
+  Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass, Eigen::Vector3d center_of_gravity);
 
   /// Calculate the rigid body Coriolis matrix using the angular velocity of the vehicle.
   [[nodiscard]] auto calculate_rigid_body_coriolis_matrix(const Eigen::Vector3d & angular_velocity) const
@@ -97,6 +104,7 @@ struct Coriolis
   double mass;
   Eigen::Matrix3d moments;
   Eigen::Vector6d added_mass_coeff;
+  Eigen::Vector3d center_of_gravity;
 };
 
 struct Damping

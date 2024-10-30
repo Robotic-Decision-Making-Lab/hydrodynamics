@@ -47,11 +47,14 @@ Inertia::Inertia(
   double Zdw,
   double Kdp,
   double Mdq,
-  double Ndr)
+  double Ndr,
+  Eigen::Vector3d center_of_gravity)
 {
   // Construct the rigid body inertia matrix
   rigid_body_matrix = Eigen::Matrix6d::Zero();
   rigid_body_matrix.topLeftCorner(3, 3) = mass * Eigen::Matrix3d::Identity();
+  rigid_body_matrix.topRightCorner(3, 3) = -mass * make_skew_symmetric_matrix(center_of_gravity);
+  rigid_body_matrix.bottomLeftCorner(3, 3) = mass * make_skew_symmetric_matrix(center_of_gravity);
   rigid_body_matrix.bottomRightCorner(3, 3) = Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix();
 
   // Construct the added mass matrix
@@ -59,13 +62,22 @@ Inertia::Inertia(
 
   // The complete mass matrix is the sum of the rigid body and added mass matrices
   mass_matrix = rigid_body_matrix + added_mass_matrix;
+
+  // Set the center of gravity
+  this->center_of_gravity = std::move(center_of_gravity);
 }
 
-Inertia::Inertia(double mass, const Eigen::Vector3d & moments, const Eigen::Vector6d & added_mass)
+Inertia::Inertia(
+  double mass,
+  const Eigen::Vector3d & moments,
+  const Eigen::Vector6d & added_mass,
+  Eigen::Vector3d center_of_gravity)
 {
   // Construct the rigid body inertia matrix
   Eigen::Matrix6d rigid_body_matrix = Eigen::Matrix6d::Zero();
   rigid_body_matrix.topLeftCorner(3, 3) = mass * Eigen::Matrix3d::Identity();
+  rigid_body_matrix.topRightCorner(3, 3) = -mass * make_skew_symmetric_matrix(center_of_gravity);
+  rigid_body_matrix.bottomLeftCorner(3, 3) = mass * make_skew_symmetric_matrix(center_of_gravity);
   rigid_body_matrix.bottomRightCorner(3, 3) = moments.asDiagonal().toDenseMatrix();
 
   // Construct the added mass matrix
@@ -73,6 +85,9 @@ Inertia::Inertia(double mass, const Eigen::Vector3d & moments, const Eigen::Vect
 
   // The complete mass matrix is the sum of the rigid body and added mass matrices
   mass_matrix = rigid_body_matrix + added_mass_matrix;
+
+  // Set the center of gravity
+  this->center_of_gravity = std::move(center_of_gravity);
 }
 
 Coriolis::Coriolis(
@@ -85,17 +100,24 @@ Coriolis::Coriolis(
   double Zdw,
   double Kdp,
   double Mdq,
-  double Ndr)
+  double Ndr,
+  Eigen::Vector3d center_of_gravity)
 : mass(mass),
   moments(Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix()),
-  added_mass_coeff(Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr))
+  added_mass_coeff(Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr)),
+  center_of_gravity(std::move(center_of_gravity))
 {
 }
 
-Coriolis::Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass)
+Coriolis::Coriolis(
+  double mass,
+  const Eigen::Vector3d & moments,
+  Eigen::Vector6d added_mass,
+  Eigen::Vector3d center_of_gravity)
 : mass(mass),
   moments(moments.asDiagonal().toDenseMatrix()),
-  added_mass_coeff(std::move(added_mass))
+  added_mass_coeff(std::move(added_mass)),
+  center_of_gravity(std::move(center_of_gravity))
 {
 }
 
@@ -106,6 +128,10 @@ auto Coriolis::calculate_rigid_body_coriolis_matrix(const Eigen::Vector3d & angu
   const Eigen::Vector3d moments_v2 = moments * angular_velocity;
 
   coriolis.topLeftCorner(3, 3) = mass * make_skew_symmetric_matrix(angular_velocity);
+  coriolis.topRightCorner(3, 3) =
+    -mass * make_skew_symmetric_matrix(angular_velocity) * make_skew_symmetric_matrix(center_of_gravity);
+  coriolis.bottomLeftCorner(3, 3) =
+    mass * make_skew_symmetric_matrix(center_of_gravity) * make_skew_symmetric_matrix(angular_velocity);
   coriolis.bottomRightCorner(3, 3) = -make_skew_symmetric_matrix(moments_v2);
 
   return coriolis;
