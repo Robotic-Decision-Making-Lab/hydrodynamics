@@ -61,7 +61,6 @@ struct Inertia
   Eigen::Matrix6d rigid_body_matrix;
   Eigen::Matrix6d added_mass_matrix;
   Eigen::Matrix6d mass_matrix;
-  Eigen::Vector3d center_of_gravity;
 };
 
 struct Coriolis
