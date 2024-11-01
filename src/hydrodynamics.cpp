@@ -108,16 +108,17 @@ Coriolis::Coriolis(
   double Ndr)
 : mass(mass),
   moments(Eigen::Vector3d(Ixx, Iyy, Izz).asDiagonal().toDenseMatrix()),
-  added_mass_coeff(Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr))
+  added_mass_coeff(Eigen::Vector6d(Xdu, Ydv, Zdw, Kdp, Mdq, Ndr)),
+  center_of_gravity(Eigen::Vector3d::Zero())
 {
 }
 
 Coriolis::Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass)
 : mass(mass),
   moments(moments.asDiagonal().toDenseMatrix()),
-  added_mass_coeff(std::move(added_mass))
+  added_mass_coeff(std::move(added_mass)),
+  center_of_gravity(Eigen::Vector3d::Zero())
 {
-  center_of_gravity = Eigen::Vector3d::Zero();
 }
 
 Coriolis::Coriolis(
