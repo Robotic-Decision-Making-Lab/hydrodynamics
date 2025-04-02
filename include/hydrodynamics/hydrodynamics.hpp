@@ -64,6 +64,8 @@ struct Inertia
     const Eigen::Vector6d & added_mass,
     const Eigen::Vector3d & center_of_gravity);
 
+  auto operator*(const Eigen::Vector6d & accel) const -> Eigen::Vector6d { return mass_matrix * accel; }
+
   Eigen::Matrix6d rigid_body_matrix;
   Eigen::Matrix6d added_mass_matrix;
   Eigen::Matrix6d mass_matrix;
@@ -112,6 +114,11 @@ struct Coriolis
   /// Calculate the Coriolis matrix using the velocity of the vehicle.
   [[nodiscard]] auto calculate_coriolis_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
 
+  [[nodiscard]] auto operator()(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d
+  {
+    return calculate_coriolis_matrix(velocity);
+  }
+
   double mass;
   Eigen::Matrix3d moments;
   Eigen::Vector6d added_mass_coeff;
@@ -147,6 +154,11 @@ struct Damping
   /// Calculate the damping matrix using the velocity of the vehicle.
   [[nodiscard]] auto calculate_damping_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
 
+  [[nodiscard]] auto operator()(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d
+  {
+    return calculate_damping_matrix(velocity);
+  }
+
   Eigen::Vector6d linear_coeff;
   Eigen::Vector6d quadratic_coeff;
 };
@@ -168,6 +180,11 @@ struct RestoringForces
 
   /// Calculate the restoring forces acting on the vehicle using the current rotation of the vehicle.
   [[nodiscard]] auto calculate_restoring_forces_vector(const Eigen::Matrix3d & rotation) const -> Eigen::Vector6d;
+
+  [[nodiscard]] auto operator()(const Eigen::Matrix3d & rotation) const -> Eigen::Vector6d
+  {
+    return calculate_restoring_forces_vector(rotation);
+  }
 
   double weight;
   double buoyancy;
