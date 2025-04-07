@@ -22,7 +22,14 @@
 
 #include <Eigen/Dense>
 
-#include "hydrodynamics/eigen.hpp"
+namespace Eigen
+{
+
+// Extend the Eigen namespace to include commonly used matrix types
+using Matrix6d = Eigen::Matrix<double, 6, 6>;
+using Vector6d = Eigen::Matrix<double, 6, 1>;
+
+}  // namespace Eigen
 
 namespace hydrodynamics
 {
@@ -191,5 +198,72 @@ struct RestoringForces
   Eigen::Vector3d center_of_buoyancy;
   Eigen::Vector3d center_of_gravity;
 };
+
+struct Params
+{
+  Params() = default;
+
+  /// Create a new wrapper for the hydrodynamic parameters using
+  /// - the inertia of the vehicle,
+  /// - the Coriolis and centripetal forces acting on the vehicle,
+  /// - the damping coefficients acting on the vehicle,
+  /// - the restoring forces acting on the vehicle.
+  Params(const Inertia & M, const Coriolis & C, const Damping & D, const RestoringForces & g);
+
+  /// Create a new wrapper for the hydrodynamic parameters using
+  /// - the inertia of the vehicle,
+  /// - the Coriolis and centripetal forces acting on the vehicle,
+  /// - the damping coefficients acting on the vehicle,
+  /// - the restoring forces acting on the vehicle.
+  Params(Inertia && M, Coriolis && C, Damping && D, RestoringForces && g);
+
+  /// Create a new wrapper for the hydrodynamic parameters using
+  /// - the mass of the vehicle,
+  /// - the moments of inertia about the x, y, and z axes,
+  /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
+  /// - the linear damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
+  /// - the quadratic damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
+  /// - the center of gravity of the vehicle,
+  /// - the center of buoyancy of the vehicle,
+  /// - the weight of the vehicle,
+  /// - the buoyancy of the vehicle.
+  Params(
+    double mass,
+    const Eigen::Vector3d & moments,
+    const Eigen::Vector6d & added_mass,
+    const Eigen::Vector6d & linear_damping,
+    const Eigen::Vector6d & quadratic_damping,
+    const Eigen::Vector3d & cog,
+    const Eigen::Vector3d & cob,
+    double weight,
+    double buoyancy);
+
+  Inertia M;
+  Coriolis C;
+  Damping D;
+  RestoringForces g;
+};
+
+/// Perform forward dynamics to compute the acceleration of a rigid body using
+/// - the hydrodynamic parameters of the vehicle,
+/// - the vector of forces/torques acting on the vehicle (can also be a control input),
+/// - the velocity of the vehicle,
+/// - the orientation of the vehicle.
+[[nodiscard]] auto forward_dynamics(
+  const Params & params,
+  const Eigen::Vector6d & vel,
+  const Eigen::Vector6d & tau,
+  const Eigen::Matrix3d & R) -> Eigen::Vector6d;
+
+/// Perform inverse dynamics to compute the forces/torques acting on a rigid body using
+/// - the hydrodynamic parameters of the vehicle,
+/// - the acceleration of the vehicle,
+/// - the velocity of the vehicle,
+/// - the orientation of the vehicle.
+[[nodiscard]] auto inverse_dynamics(
+  const Params & params,
+  const Eigen::Vector6d & acc,
+  const Eigen::Vector6d & vel,
+  const Eigen::Matrix3d & R) -> Eigen::Vector6d;
 
 }  // namespace hydrodynamics
