@@ -232,7 +232,7 @@ auto RestoringForces::calculate_restoring_forces_vector(const Eigen::Matrix3d & 
   return g_rb;
 }
 
-Parameters::Parameters(const Inertia & M, const Coriolis & C, const Damping & D, const RestoringForces & g)
+Params::Params(const Inertia & M, const Coriolis & C, const Damping & D, const RestoringForces & g)
 {
   this->M = M;
   this->C = C;
@@ -240,7 +240,7 @@ Parameters::Parameters(const Inertia & M, const Coriolis & C, const Damping & D,
   this->g = g;
 }
 
-Parameters::Parameters(Inertia && M, Coriolis && C, Damping && D, RestoringForces && g)
+Params::Params(Inertia && M, Coriolis && C, Damping && D, RestoringForces && g)
 {
   this->M = std::move(M);
   this->C = std::move(C);
@@ -248,7 +248,7 @@ Parameters::Parameters(Inertia && M, Coriolis && C, Damping && D, RestoringForce
   this->g = std::move(g);
 }
 
-Parameters::Parameters(
+Params::Params(
   double mass,
   const Eigen::Vector3d & moments,
   const Eigen::Vector6d & added_mass,
@@ -266,7 +266,7 @@ Parameters::Parameters(
 }
 
 auto forward_dynamics(
-  const Parameters & params,
+  const Params & params,
   const Eigen::Vector6d & vel,
   const Eigen::Vector6d & tau,
   const Eigen::Matrix3d & R) -> Eigen::Vector6d
@@ -275,7 +275,7 @@ auto forward_dynamics(
 }
 
 auto inverse_dynamics(
-  const Parameters & params,
+  const Params & params,
   const Eigen::Vector6d & acc,
   const Eigen::Vector6d & vel,
   const Eigen::Matrix3d & R) -> Eigen::Vector6d

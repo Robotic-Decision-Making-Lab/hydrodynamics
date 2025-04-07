@@ -199,23 +199,23 @@ struct RestoringForces
   Eigen::Vector3d center_of_gravity;
 };
 
-struct Parameters
+struct Params
 {
-  Parameters() = default;
+  Params() = default;
 
   /// Create a new wrapper for the hydrodynamic parameters using
   /// - the inertia of the vehicle,
   /// - the Coriolis and centripetal forces acting on the vehicle,
   /// - the damping coefficients acting on the vehicle,
   /// - the restoring forces acting on the vehicle.
-  Parameters(const Inertia & M, const Coriolis & C, const Damping & D, const RestoringForces & g);
+  Params(const Inertia & M, const Coriolis & C, const Damping & D, const RestoringForces & g);
 
   /// Create a new wrapper for the hydrodynamic parameters using
   /// - the inertia of the vehicle,
   /// - the Coriolis and centripetal forces acting on the vehicle,
   /// - the damping coefficients acting on the vehicle,
   /// - the restoring forces acting on the vehicle.
-  Parameters(Inertia && M, Coriolis && C, Damping && D, RestoringForces && g);
+  Params(Inertia && M, Coriolis && C, Damping && D, RestoringForces && g);
 
   /// Create a new wrapper for the hydrodynamic parameters using
   /// - the mass of the vehicle,
@@ -227,7 +227,7 @@ struct Parameters
   /// - the center of buoyancy of the vehicle,
   /// - the weight of the vehicle,
   /// - the buoyancy of the vehicle.
-  Parameters(
+  Params(
     double mass,
     const Eigen::Vector3d & moments,
     const Eigen::Vector6d & added_mass,
@@ -250,7 +250,7 @@ struct Parameters
 /// - the velocity of the vehicle,
 /// - the orientation of the vehicle.
 [[nodiscard]] auto forward_dynamics(
-  const Parameters & params,
+  const Params & params,
   const Eigen::Vector6d & vel,
   const Eigen::Vector6d & tau,
   const Eigen::Matrix3d & R) -> Eigen::Vector6d;
@@ -261,7 +261,7 @@ struct Parameters
 /// - the velocity of the vehicle,
 /// - the orientation of the vehicle.
 [[nodiscard]] auto inverse_dynamics(
-  const Parameters & params,
+  const Params & params,
   const Eigen::Vector6d & acc,
   const Eigen::Vector6d & vel,
   const Eigen::Matrix3d & R) -> Eigen::Vector6d;
