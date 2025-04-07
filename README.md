@@ -24,8 +24,8 @@ M\dot{v} + C(v)v + D(v)v + g(\eta) = \tau,
 
 where $M$ is the mass matrix, including rigid body inertia and added mass;
 $C(v)$ is the matrix of Coriolis and centripetal effects; $D(v)$ is the drag
-matrix, including linear and quadratic drag; and $g$ is the vector of restoring
-forces.
+matrix, including linear and quadratic drag; and $g(\eta)$ is the vector of
+restoring forces.
 
 ## License
 
