@@ -232,4 +232,55 @@ auto RestoringForces::calculate_restoring_forces_vector(const Eigen::Matrix3d & 
   return g_rb;
 }
 
+Parameters::Parameters(const Inertia & M, const Coriolis & C, const Damping & D, const RestoringForces & g)
+{
+  this->M = M;
+  this->C = C;
+  this->D = D;
+  this->g = g;
+}
+
+Parameters::Parameters(Inertia && M, Coriolis && C, Damping && D, RestoringForces && g)
+{
+  this->M = std::move(M);
+  this->C = std::move(C);
+  this->D = std::move(D);
+  this->g = std::move(g);
+}
+
+Parameters::Parameters(
+  double mass,
+  const Eigen::Vector3d & moments,
+  const Eigen::Vector6d & added_mass,
+  const Eigen::Vector6d & linear_damping,
+  const Eigen::Vector6d & quadratic_damping,
+  const Eigen::Vector3d & cog,
+  const Eigen::Vector3d & cob,
+  double weight,
+  double buoyancy)
+{
+  M = Inertia(mass, moments, added_mass);
+  C = Coriolis(mass, moments, added_mass);
+  D = Damping(linear_damping, quadratic_damping);
+  g = RestoringForces(weight, buoyancy, cob, cog);
+}
+
+auto forward_dynamics(
+  const Parameters & params,
+  const Eigen::Vector6d & vel,
+  const Eigen::Vector6d & tau,
+  const Eigen::Matrix3d & R) -> Eigen::Vector6d
+{
+  return params.M.mass_matrix.inverse() * (tau - params.C(vel) * vel - params.D(vel) * vel - params.g(R));
+}
+
+auto inverse_dynamics(
+  const Parameters & params,
+  const Eigen::Vector6d & acc,
+  const Eigen::Vector6d & vel,
+  const Eigen::Matrix3d & R) -> Eigen::Vector6d
+{
+  return params.M * acc + params.C(vel) * vel + params.D(vel) * vel + params.g(R);
+}
+
 }  // namespace hydrodynamics
