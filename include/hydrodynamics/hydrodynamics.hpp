@@ -21,6 +21,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <expected>
 
 namespace Eigen
 {
@@ -38,38 +39,12 @@ struct Inertia
 {
   Inertia() = default;
 
-  /// Create a new wrapper for inertial parameters (including added mass and rigid body inertia) using:
+  /// Create a new wrapper for the inertial parameters (including added mass and rigid body inertia) using:
   /// - the mass of the vehicle,
-  /// - the moments of inertia about the x, y, and z axes,
-  /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
-  Inertia(
-    double mass,
-    double Ixx,
-    double Iyy,
-    double Izz,
-    double Xdu,
-    double Ydv,
-    double Zdw,
-    double Kdp,
-    double Mdq,
-    double Ndr);
-
-  /// Create a new wrapper for inertial parameters (including added mass and rigid body inertia) using:
-  /// - the mass of the vehicle,
-  /// - the moments of inertia about the x, y, and z axes,
-  /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
-  Inertia(double mass, const Eigen::Vector3d & moments, const Eigen::Vector6d & added_mass);
-
-  /// Create a new wrapper for inertial parameters (including added mass and rigid body inertia) using:
-  /// - the mass of the vehicle,
-  /// - the moments of inertia about the x, y, and z axes,
-  /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
+  /// - the inertia tensor,
+  /// - the added mass matrix,
   /// - the center of gravity of the vehicle.
-  Inertia(
-    double mass,
-    const Eigen::Vector3d & moments,
-    const Eigen::Vector6d & added_mass,
-    const Eigen::Vector3d & center_of_gravity);
+  Inertia(double mass, const Eigen::Matrix3d & I, const Eigen::Matrix6d & added_mass, const Eigen::Vector3d & cog);
 
   auto operator*(const Eigen::Vector6d & accel) const -> Eigen::Vector6d { return mass_matrix * accel; }
 
@@ -84,52 +59,26 @@ struct Coriolis
 
   /// Create a new wrapper for the Coriolis and centripetal force parameters using:
   /// - the mass of the vehicle,
-  /// - the moments of inertia about the x, y, and z axes,
-  /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
-  Coriolis(
-    double mass,
-    double Ixx,
-    double Iyy,
-    double Izz,
-    double Xdu,
-    double Ydv,
-    double Zdw,
-    double Kdp,
-    double Mdq,
-    double Ndr);
-
-  /// Create a new wrapper for the Coriolis and centripetal force parameters using:
-  /// - the mass of the vehicle,
-  /// - the moments of inertia about the x, y, and z axes,
-  /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
-  Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass);
-
-  /// Create a new wrapper for the Coriolis and centripetal force parameters using:
-  /// - the mass of the vehicle,
-  /// - the moments of inertia about the x, y, and z axes,
-  /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
+  /// - the inertia tensor,
+  /// - the added mass matrix,
   /// - the center of gravity of the vehicle.
-  Coriolis(double mass, const Eigen::Vector3d & moments, Eigen::Vector6d added_mass, Eigen::Vector3d center_of_gravity);
+  Coriolis(double mass, const Eigen::Matrix3d & I, const Eigen::Matrix6d & added_mass, const Eigen::Vector3d & cog);
 
-  /// Calculate the rigid body Coriolis matrix using the angular velocity of the vehicle.
-  [[nodiscard]] auto calculate_rigid_body_coriolis_matrix(const Eigen::Vector3d & angular_velocity) const
-    -> Eigen::Matrix6d;
+  /// Calculate the rigid body Coriolis matrix using the velocity of the vehicle.
+  [[nodiscard]] auto rigid_body_coriolis_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
 
   /// Calculate the added mass Coriolis matrix using the velocity of the vehicle.
-  [[nodiscard]] auto calculate_added_coriolis_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
+  [[nodiscard]] auto added_coriolis_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
 
   /// Calculate the Coriolis matrix using the velocity of the vehicle.
-  [[nodiscard]] auto calculate_coriolis_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
+  [[nodiscard]] auto coriolis_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
 
   [[nodiscard]] auto operator()(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d
   {
-    return calculate_coriolis_matrix(velocity);
+    return coriolis_matrix(velocity);
   }
 
-  double mass;
-  Eigen::Matrix3d moments;
-  Eigen::Vector6d added_mass_coeff;
-  Eigen::Vector3d center_of_gravity;
+  Inertia inertia;
 };
 
 struct Damping
@@ -137,21 +86,9 @@ struct Damping
   Damping() = default;
 
   /// Create a new wrapper for the damping coefficients using:
-  /// - the linear damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
-  /// - the quadratic damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
-  Damping(
-    double Xu,
-    double Yv,
-    double Zw,
-    double Kp,
-    double Mq,
-    double Nr,
-    double Xuu,
-    double Yvv,
-    double Zww,
-    double Kpp,
-    double Mqq,
-    double Nrr);
+  /// - the linear damping matrix,
+  /// - the quadratic damping matrix.
+  Damping(const Eigen::Matrix6d & linear, const Eigen::Matrix6d & quadratic);
 
   /// Create a new wrapper for the damping coefficients using:
   /// - the linear damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
@@ -159,15 +96,15 @@ struct Damping
   Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic);
 
   /// Calculate the damping matrix using the velocity of the vehicle.
-  [[nodiscard]] auto calculate_damping_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
+  [[nodiscard]] auto damping_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
 
   [[nodiscard]] auto operator()(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d
   {
-    return calculate_damping_matrix(velocity);
+    return damping_matrix(velocity);
   }
 
-  Eigen::Vector6d linear_coeff;
-  Eigen::Vector6d quadratic_coeff;
+  Eigen::Matrix6d linear_drag;
+  Eigen::Matrix6d quadratic_drag;
 };
 
 struct RestoringForces
@@ -179,18 +116,17 @@ struct RestoringForces
   /// - the buoyancy of the vehicle,
   /// - the center of buoyancy of the vehicle,
   /// - the center of gravity of the vehicle.
-  RestoringForces(
-    double weight,
-    double buoyancy,
-    Eigen::Vector3d center_of_buoyancy,
-    Eigen::Vector3d center_of_gravity);
+  RestoringForces(double weight, double buoyancy, Eigen::Vector3d cob, Eigen::Vector3d cog);
 
   /// Calculate the restoring forces acting on the vehicle using the current rotation of the vehicle.
-  [[nodiscard]] auto calculate_restoring_forces_vector(const Eigen::Matrix3d & rotation) const -> Eigen::Vector6d;
+  [[nodiscard]] auto restoring_forces_vector(const Eigen::Matrix3d & rotation) const -> Eigen::Vector6d;
+
+  /// Calculate the restoring forces acting on the vehicle using the current rotation of the vehicle.
+  [[nodiscard]] auto restoring_forces_vector(const Eigen::Quaterniond & rotation) const -> Eigen::Vector6d;
 
   [[nodiscard]] auto operator()(const Eigen::Matrix3d & rotation) const -> Eigen::Vector6d
   {
-    return calculate_restoring_forces_vector(rotation);
+    return restoring_forces_vector(rotation);
   }
 
   double weight;
@@ -219,20 +155,20 @@ struct Params
 
   /// Create a new wrapper for the hydrodynamic parameters using
   /// - the mass of the vehicle,
-  /// - the moments of inertia about the x, y, and z axes,
-  /// - the added mass coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
-  /// - the linear damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
-  /// - the quadratic damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
+  /// - the inertia tensor,
+  /// - the added mass matrix,
+  /// - the linear damping matrix,
+  /// - the quadratic damping matrix,
   /// - the center of gravity of the vehicle,
   /// - the center of buoyancy of the vehicle,
   /// - the weight of the vehicle,
   /// - the buoyancy of the vehicle.
   Params(
     double mass,
-    const Eigen::Vector3d & moments,
-    const Eigen::Vector6d & added_mass,
-    const Eigen::Vector6d & linear_damping,
-    const Eigen::Vector6d & quadratic_damping,
+    const Eigen::Matrix3d & I,
+    const Eigen::Matrix6d & added_mass,
+    const Eigen::Matrix6d & linear_damping,
+    const Eigen::Matrix6d & quadratic_damping,
     const Eigen::Vector3d & cog,
     const Eigen::Vector3d & cob,
     double weight,
@@ -265,5 +201,11 @@ struct Params
   const Eigen::Vector6d & acc,
   const Eigen::Vector6d & vel,
   const Eigen::Matrix3d & R) -> Eigen::Vector6d;
+
+/// Parse the hydrodynamic model from a URDF string.
+[[nodiscard]] auto parse_model_from_xml(const std::string & tree) -> std::expected<Params, std::string>;
+
+/// Parse the hydrodynamic model from a URDF file.
+[[nodiscard]] auto parse_model_from_urdf(const std::string & file) -> std::expected<Params, std::string>;
 
 }  // namespace hydrodynamics

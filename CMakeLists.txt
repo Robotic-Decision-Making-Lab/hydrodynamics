@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.23)
 project(hydrodynamics)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
@@ -7,20 +7,34 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(TinyXML2 REQUIRED)
+find_package(tinyxml2_vendor REQUIRED)
 
 add_library(hydrodynamics SHARED)
-
-target_sources(hydrodynamics PRIVATE src/hydrodynamics.cpp)
-target_include_directories(
+target_sources(
     hydrodynamics
+    PRIVATE src/hydrodynamics.cpp
     PUBLIC
-        $<INSTALL_INTERFACE:include/hydrodynamics>
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        FILE_SET HEADERS
+        BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+        FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/include/hydrodynamics/hydrodynamics.hpp
 )
-target_compile_features(hydrodynamics PUBLIC cxx_std_20)
-target_link_libraries(hydrodynamics Eigen3::Eigen)
 
-install(DIRECTORY include/ DESTINATION include/hydrodynamics)
+target_compile_features(hydrodynamics PUBLIC cxx_std_23)
+target_link_libraries(hydrodynamics Eigen3::Eigen tinyxml2::tinyxml2)
+
+set(EXAMPLES parse_model)
+
+foreach(example IN ITEMS ${EXAMPLES})
+    add_executable(${example} examples/${example}.cpp)
+    add_dependencies(${example} hydrodynamics)
+    target_link_libraries(${example} PUBLIC hydrodynamics)
+    set_target_properties(
+        ${example}
+        PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/examples
+    )
+endforeach()
 
 install(
     TARGETS hydrodynamics
@@ -28,6 +42,7 @@ install(
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    FILE_SET HEADERS
 )
 
 ament_export_targets(export_hydrodynamics HAS_LIBRARY_TARGET)
