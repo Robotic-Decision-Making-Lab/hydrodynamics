@@ -129,7 +129,7 @@ Damping::Damping(const Eigen::Matrix6d & linear, const Eigen::Matrix6d & quadrat
 {
 }
 
-Damping::Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic)
+Damping::Damping(const Eigen::Vector6d & linear, const Eigen::Vector6d & quadratic)
 : linear_drag(linear.asDiagonal().toDenseMatrix()),
   quadratic_drag(quadratic.asDiagonal().toDenseMatrix())
 {
@@ -303,7 +303,7 @@ auto parse_vector3d(const tinyxml2::XMLElement * parent, const std::string & chi
   }
 
   tinyxml2::XMLDocument doc;
-  if (!doc.Parse(tree.c_str()) && doc.Error()) {
+  if (!doc.Parse(tree.c_str()) == tinyxml2::XML_SUCCESS && doc.Error()) {
     return std::unexpected("Failed to parse URDF tree");
   }
 
@@ -389,7 +389,7 @@ auto parse_vector3d(const tinyxml2::XMLElement * parent, const std::string & chi
   }
   cob = cob_out.value();
 
-  Params params(mass, inertia, added_mass, linear_drag, quadratic_drag, cog, cob, weight, buoyancy);
+  const Params params(mass, inertia, added_mass, linear_drag, quadratic_drag, cog, cob, weight, buoyancy);
   return params;
 }
 

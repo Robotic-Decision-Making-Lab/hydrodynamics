@@ -103,7 +103,7 @@ struct Damping
   /// - the quadratic damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
   ///
   /// The damping matrix is implemented with reference to Section 2.4.2 of Antonelli's "Underwater Robots" (2014).
-  Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic);
+  Damping(const Eigen::Vector6d & linear, const Eigen::Vector6d & quadratic);
 
   /// Calculate the damping matrix using the velocity of the vehicle.
   [[nodiscard]] auto damping_matrix(const Eigen::Vector6d & velocity) const -> Eigen::Matrix6d;
