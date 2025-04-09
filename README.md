@@ -5,7 +5,7 @@ hydrodynamic parameters and performing forward/inverse dynamics.
 
 ## Installation
 
-hydrodynamics supports ROS 2 Jazzy, and Rolling. To install and use
+hydrodynamics supports ROS 2 Jazzy and Rolling. To install and use
 this library in your own project, clone this repository to your workspace:
 
 ```bash
