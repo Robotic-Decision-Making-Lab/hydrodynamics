@@ -29,4 +29,4 @@ jobs:
         env:
           ROS_DISTRO: ${{ matrix.env.ROS_DISTRO }}
           CXXFLAGS: -Wall -Wextra -Wpedantic
-          CLANG_TIDY: true
+          CLANG_TIDY: false # Set to true once newer version of clang-tidy is available
