@@ -28,5 +28,5 @@ jobs:
         uses: ros-industrial/industrial_ci@master
         env:
           ROS_DISTRO: ${{ matrix.env.ROS_DISTRO }}
-          CXXFLAGS: -Wall -Wextra -Wpedantic -stdlib=libc++
-          CLANG_TIDY: true
+          CXXFLAGS: -Wall -Wextra -Wpedantic
+          CLANG_TIDY: false # Set to true once newer version of clang-tidy is available
