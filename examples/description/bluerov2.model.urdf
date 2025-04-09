@@ -12,7 +12,6 @@
     <quadratic_damping Xuu="-18.18" Yvv="-21.66" Zww="-36.99" Kpp="-1.55" Mqq="-1.55" Nrr="-1.55" />
 
     <!-- restoring forces -->
-    <weight>98.1</weight>
     <buoyancy>100.06</buoyancy>
     <center_of_gravity x="0.0" y="0.0" z="0.0" />
     <center_of_buoyancy x="0.0" y="0.0" z="0.0" />

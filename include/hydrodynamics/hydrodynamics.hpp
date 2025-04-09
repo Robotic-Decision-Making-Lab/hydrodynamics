@@ -44,6 +44,9 @@ struct Inertia
   /// - the inertia tensor,
   /// - the added mass matrix,
   /// - the center of gravity of the vehicle.
+  ///
+  /// The system inertia matrix is implemented with reference to Equations 3.44, 6.38, and 6.48 of Fossen's "Handbook
+  /// of Marine Craft Hydrodynamics and Motion Control" (2011).
   Inertia(double mass, const Eigen::Matrix3d & I, const Eigen::Matrix6d & added_mass, const Eigen::Vector3d & cog);
 
   auto operator*(const Eigen::Vector6d & accel) const -> Eigen::Vector6d { return mass_matrix * accel; }
@@ -62,6 +65,9 @@ struct Coriolis
   /// - the inertia tensor,
   /// - the added mass matrix,
   /// - the center of gravity of the vehicle.
+  ///
+  /// The Coriolis matrix is implemented with reference to Equations 3.46, 6.43, and 6.49 of Fossen's "Handbook of
+  /// Marine Craft Hydrodynamics and Motion Control" (2011).
   Coriolis(double mass, const Eigen::Matrix3d & I, const Eigen::Matrix6d & added_mass, const Eigen::Vector3d & cog);
 
   /// Calculate the rigid body Coriolis matrix using the velocity of the vehicle.
@@ -88,11 +94,15 @@ struct Damping
   /// Create a new wrapper for the damping coefficients using:
   /// - the linear damping matrix,
   /// - the quadratic damping matrix.
+  ///
+  /// The damping matrix is implemented with reference to Section 2.4.2 of Antonelli's "Underwater Robots" (2014).
   Damping(const Eigen::Matrix6d & linear, const Eigen::Matrix6d & quadratic);
 
   /// Create a new wrapper for the damping coefficients using:
   /// - the linear damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions,
   /// - the quadratic damping coefficients in the surge, sway, heave, roll, pitch, and yaw directions.
+  ///
+  /// The damping matrix is implemented with reference to Section 2.4.2 of Antonelli's "Underwater Robots" (2014).
   Damping(Eigen::Vector6d linear, Eigen::Vector6d quadratic);
 
   /// Calculate the damping matrix using the velocity of the vehicle.
@@ -116,6 +126,9 @@ struct RestoringForces
   /// - the buoyancy of the vehicle,
   /// - the center of buoyancy of the vehicle,
   /// - the center of gravity of the vehicle.
+  ///
+  /// The restoring forces vector is implemented with reference to Section 2.5 of Antonelli's "Underwater Robots"
+  /// (2014).
   RestoringForces(double weight, double buoyancy, Eigen::Vector3d cob, Eigen::Vector3d cog);
 
   /// Calculate the restoring forces acting on the vehicle using the current rotation of the vehicle.

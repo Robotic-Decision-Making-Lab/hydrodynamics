@@ -319,7 +319,7 @@ auto parse_vector3d(const tinyxml2::XMLElement * parent, const std::string & chi
 
   // extract the mass, weight, and buoyancy of the vehicle
   std::unordered_map<std::string, double> text_params;
-  for (const auto key : {"mass", "weight", "buoyancy"}) {
+  for (const auto key : {"mass", "buoyancy"}) {
     const auto val = parse_text(hydro_it, key);
     if (!val.has_value()) {
       return std::unexpected(val.error());
@@ -327,7 +327,8 @@ auto parse_vector3d(const tinyxml2::XMLElement * parent, const std::string & chi
     text_params[key] = val.value();
   }
   // NOLINTNEXTLINE
-  const double mass = text_params["mass"], weight = text_params["weight"], buoyancy = text_params["buoyancy"];
+  const double mass = text_params["mass"], buoyancy = text_params["buoyancy"];
+  const double weight = mass * 9.81;
 
   // extract the inertia tensor
   const auto inertia_out = parse_element(hydro_it, "inertia");

@@ -27,7 +27,8 @@ $C(v)$ is the matrix of Coriolis and centripetal effects; $D(v)$ is the drag
 matrix, including linear and quadratic drag; and $g(\eta)$ is the vector of
 restoring forces.
 
-For examples demonstrating how to use the library, please see [examples]().
+For more information regarding how to use the library, please see the project
+[examples](https://github.com/Robotic-Decision-Making-Lab/hydrodynamics/tree/main/examples).
 
 ## License
 
