@@ -303,7 +303,7 @@ auto parse_vector3d(const tinyxml2::XMLElement * parent, const std::string & chi
   }
 
   tinyxml2::XMLDocument doc;
-  if (!doc.Parse(tree.c_str()) == tinyxml2::XML_SUCCESS && doc.Error()) {
+  if (!(doc.Parse(tree.c_str()) == tinyxml2::XML_SUCCESS) && doc.Error()) {
     return std::unexpected("Failed to parse URDF tree");
   }
 
