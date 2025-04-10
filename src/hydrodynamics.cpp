@@ -230,23 +230,9 @@ auto parse_element(const tinyxml2::XMLElement * parent, const std::string & name
 {
   const tinyxml2::XMLElement * element = parent->FirstChildElement(name.c_str());
   if (element == nullptr) {
-    return std::unexpected(std::format("Failed to parse required element: {}", name));
+    return std::unexpected(std::format("Could not parse required element <{}>", name));
   }
   return element;
-}
-
-auto parse_text(const tinyxml2::XMLElement * parent, const std::string & name) -> std::expected<double, std::string>
-{
-  const auto out = parse_element(parent, name);
-  if (!out.has_value()) {
-    return std::unexpected(out.error());
-  }
-  const tinyxml2::XMLElement * element = out.value();
-  double value = 0.0;
-  if (element->QueryDoubleText(&value) != tinyxml2::XML_SUCCESS) {
-    return std::unexpected(std::format("Failed to parse required element: <{}>", name));
-  }
-  return value;
 }
 
 auto parse_attribute(const tinyxml2::XMLElement * element, const std::string & attribute_name)
@@ -254,9 +240,23 @@ auto parse_attribute(const tinyxml2::XMLElement * element, const std::string & a
 {
   double value = 0.0;
   if (element == nullptr || element->QueryDoubleAttribute(attribute_name.c_str(), &value) != tinyxml2::XML_SUCCESS) {
-    return std::unexpected(std::format("Failed to parse required attribute: {}", attribute_name));
+    return std::unexpected(std::format("Could not parse required attribute: {}", attribute_name));
   }
   return value;
+}
+
+auto parse_value(const tinyxml2::XMLElement * parent, const std::string & child) -> std::expected<double, std::string>
+{
+  const auto out = parse_element(parent, child);
+  if (!out.has_value()) {
+    return std::unexpected(out.error());
+  }
+  const tinyxml2::XMLElement * child_it = out.value();
+  const auto value = parse_attribute(child_it, "value");
+  if (!value.has_value()) {
+    return std::unexpected(value.error());
+  }
+  return value.value();
 }
 
 auto parse_vector6d(const tinyxml2::XMLElement * parent, const std::string & child, std::array<std::string, 6> keys)
@@ -312,32 +312,31 @@ auto parse_vector3d(const tinyxml2::XMLElement * parent, const std::string & chi
     return std::unexpected("Invalid URDF tree: missing <robot> root");
   }
 
-  const tinyxml2::XMLElement * hydro_it = robot_it->FirstChildElement("hydrodynamics");
-  if (hydro_it == nullptr) {
-    return std::unexpected("No <hydrodynamics> element found in URDF tree");
+  const auto hydro_out = parse_element(robot_it, "hydrodynamics");
+  if (!hydro_out.has_value()) {
+    return std::unexpected(hydro_out.error());
   }
+  const tinyxml2::XMLElement * hydro_it = hydro_out.value();
 
-  // extract the mass, weight, and buoyancy of the vehicle
-  std::unordered_map<std::string, double> text_params;
-  for (const auto key : {"mass", "buoyancy"}) {
-    const auto val = parse_text(hydro_it, key);
-    if (!val.has_value()) {
-      return std::unexpected(val.error());
-    }
-    text_params[key] = val.value();
+  const auto inertial_out = parse_element(hydro_it, "inertial");
+  if (!inertial_out.has_value()) {
+    return std::unexpected(inertial_out.error());
   }
-  // NOLINTNEXTLINE
-  const double mass = text_params["mass"], buoyancy = text_params["buoyancy"];
+  const tinyxml2::XMLElement * inertial_it = inertial_out.value();
+
+  const auto mass_out = parse_value(inertial_it, "mass");
+  if (!mass_out.has_value()) {
+    return std::unexpected(mass_out.error());
+  }
+  const double mass = mass_out.value();
   const double weight = mass * 9.81;
 
-  // extract the inertia tensor
-  const auto inertia_out = parse_element(hydro_it, "inertia");
+  const auto inertia_out = parse_element(inertial_it, "inertia");
   if (!inertia_out.has_value()) {
     return std::unexpected(inertia_out.error());
   }
   const tinyxml2::XMLElement * inertia_it = inertia_out.value();
 
-  // the moments of inertia are required
   Eigen::Matrix3d inertia = Eigen::Matrix3d::Zero();
   const std::array<std::string, 3> inertia_keys = {"ixx", "iyy", "izz"};
   for (const auto [i, key] : std::views::enumerate(inertia_keys)) {
@@ -348,46 +347,59 @@ auto parse_vector3d(const tinyxml2::XMLElement * parent, const std::string & chi
     inertia(i, i) = val.value();
   }
 
-  // the products of inertia are optional
   inertia(0, 1) = parse_attribute(inertia_it, "ixy").value_or(0.0);
   inertia(0, 2) = parse_attribute(inertia_it, "ixz").value_or(0.0);
   inertia(1, 2) = parse_attribute(inertia_it, "iyz").value_or(0.0);
 
-  // parse the added mass coefficients
-  const auto added_mass_out = parse_vector6d(hydro_it, "added_mass", {"Xdu", "Ydv", "Zdw", "Kdp", "Mdq", "Ndr"});
+  const auto added_mass_out = parse_vector6d(inertial_it, "added_mass", {"Xdu", "Ydv", "Zdw", "Kdp", "Mdq", "Ndr"});
   if (!added_mass_out.has_value()) {
     return std::unexpected(added_mass_out.error());
   }
   Eigen::Matrix6d added_mass = added_mass_out.value().asDiagonal().toDenseMatrix();
 
-  // parse the linear and quadratic damping coefficients
-  const auto linear_drag_out = parse_vector6d(hydro_it, "linear_damping", {"Xu", "Yv", "Zw", "Kp", "Mq", "Nr"});
-  if (!linear_drag_out.has_value()) {
-    return std::unexpected(linear_drag_out.error());
-  }
-  Eigen::Matrix6d linear_drag = linear_drag_out.value().asDiagonal().toDenseMatrix();
-
-  const auto quad_drag_out = parse_vector6d(hydro_it, "quadratic_damping", {"Xuu", "Yvv", "Zww", "Kpp", "Mqq", "Nrr"});
-  if (!quad_drag_out.has_value()) {
-    return std::unexpected(quad_drag_out.error());
-  }
-  Eigen::Matrix6d quadratic_drag = quad_drag_out.value().asDiagonal().toDenseMatrix();
-
-  // parse the center of gravity
   Eigen::Vector3d cog = Eigen::Vector3d::Zero();
-  const auto cog_out = parse_vector3d(hydro_it, "center_of_gravity");
+  const auto cog_out = parse_vector3d(inertial_it, "center_of_gravity");
   if (!cog_out.has_value()) {
     return std::unexpected(cog_out.error());
   }
   cog = cog_out.value();
 
-  // parse the center of buoyancy
+  const auto drag_out = parse_element(hydro_it, "damping");
+  if (!drag_out.has_value()) {
+    return std::unexpected(drag_out.error());
+  }
+  const tinyxml2::XMLElement * drag_it = drag_out.value();
+
+  const auto linear_drag_out = parse_vector6d(drag_it, "linear", {"Xu", "Yv", "Zw", "Kp", "Mq", "Nr"});
+  if (!linear_drag_out.has_value()) {
+    return std::unexpected(linear_drag_out.error());
+  }
+  Eigen::Matrix6d linear_drag = linear_drag_out.value().asDiagonal().toDenseMatrix();
+
+  const auto quad_drag_out = parse_vector6d(drag_it, "quadratic", {"Xuu", "Yvv", "Zww", "Kpp", "Mqq", "Nrr"});
+  if (!quad_drag_out.has_value()) {
+    return std::unexpected(quad_drag_out.error());
+  }
+  Eigen::Matrix6d quadratic_drag = quad_drag_out.value().asDiagonal().toDenseMatrix();
+
+  const auto hydrostatics_out = parse_element(hydro_it, "hydrostatics");
+  if (!hydrostatics_out.has_value()) {
+    return std::unexpected(hydrostatics_out.error());
+  }
+  const tinyxml2::XMLElement * hydrostatics_it = hydrostatics_out.value();
+
   Eigen::Vector3d cob = Eigen::Vector3d::Zero();
-  const auto cob_out = parse_vector3d(hydro_it, "center_of_buoyancy");
+  const auto cob_out = parse_vector3d(hydrostatics_it, "center_of_buoyancy");
   if (!cob_out.has_value()) {
     return std::unexpected(cob_out.error());
   }
   cob = cob_out.value();
+
+  const auto buoyancy_out = parse_value(hydrostatics_it, "buoyancy");
+  if (!buoyancy_out.has_value()) {
+    return std::unexpected(buoyancy_out.error());
+  }
+  const double buoyancy = buoyancy_out.value();
 
   const Params params(mass, inertia, added_mass, linear_drag, quadratic_drag, cog, cob, weight, buoyancy);
   return params;
