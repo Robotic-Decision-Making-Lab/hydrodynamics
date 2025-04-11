@@ -240,7 +240,7 @@ auto parse_attribute(const tinyxml2::XMLElement * element, const std::string & a
 {
   double value = 0.0;
   if (element == nullptr || element->QueryDoubleAttribute(attribute_name.c_str(), &value) != tinyxml2::XML_SUCCESS) {
-    return std::unexpected(std::format("Could not parse required attribute: {}", attribute_name));
+    return std::unexpected(std::format("Could not parse required attribute {}", attribute_name));
   }
   return value;
 }

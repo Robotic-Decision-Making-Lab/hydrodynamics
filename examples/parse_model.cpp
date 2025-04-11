@@ -26,7 +26,7 @@
 
 auto main() -> int
 {
-  // parse the urdf from a file path - update the path to the urdf file
+  // parse the urdf from a file path - update the path to be your urdf file
   // we use the BlueROV2 hydrodynamics model as an example
   const std::string urdf_path = "/home/ubuntu/ws_ros/src/hydrodynamics/examples/description/bluerov2.model.urdf";
   const auto out = hydrodynamics::parse_model_from_urdf(urdf_path);
