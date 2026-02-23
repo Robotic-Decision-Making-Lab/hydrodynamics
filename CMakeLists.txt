@@ -8,7 +8,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(TinyXML2 REQUIRED)
-find_package(tinyxml2_vendor REQUIRED)
 
 add_library(hydrodynamics SHARED)
 target_sources(
