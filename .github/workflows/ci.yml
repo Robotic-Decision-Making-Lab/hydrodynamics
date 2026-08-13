@@ -18,8 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        env:
-          - ROS_DISTRO: rolling
+        ROS_DISTRO: [jazzy, kilted]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -27,6 +26,6 @@ jobs:
       - name: Run ROS Industrial CI
         uses: ros-industrial/industrial_ci@master
         env:
-          ROS_DISTRO: ${{ matrix.env.ROS_DISTRO }}
+          ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           CXXFLAGS: -Wall -Wextra -Wpedantic
           CLANG_TIDY: false # Set to true once newer version of clang-tidy is available

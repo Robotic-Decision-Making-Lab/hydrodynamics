@@ -1,0 +1,95 @@
+name: Tag & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        type: choice
+        description: 'If not specified, all packages will be released.'
+        options:
+          - ""
+          - hydrodynamics
+
+      build_kilted:
+        type: boolean
+        default: true
+        description: "Release for Kilted"
+
+      build_jazzy:
+        type: boolean
+        default: true
+        description: "Release for Jazzy"
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      distros: ${{ steps.set-distros.outputs.distros }}
+    steps:
+      - id: set-distros
+        run: |
+          distros=()
+          [ "${{ github.event.inputs.build_jazzy }}" == "true" ] && distros+=("jazzy")
+          [ "${{ github.event.inputs.build_kilted }}" == "true" ] && distros+=("kilted")
+
+          if [ ${#distros[@]} -eq 0 ]; then
+            echo "::error::No distros selected. Please enable release for at least one of the available distros."
+            exit 1
+          fi
+
+          echo "distros=$(jq -cn '$ARGS.positional' --args "${distros[@]}")" >> $GITHUB_OUTPUT
+
+  build:
+    needs: setup
+    strategy:
+      fail-fast: true
+      matrix:
+        ros_distro: ${{ fromJson(needs.setup.outputs.distros) }}
+        job:
+          - runner: 2vcpu-ubuntu-2404
+            arch: amd64
+          - runner: 4vcpu-ubuntu-2404-arm
+            arch: arm64
+
+    name: Build - ${{ matrix.job.arch }} - ${{ matrix.ros_distro }}
+    runs-on: ${{ matrix.job.runner }}
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Semantic release - Build
+        uses: Greenroom-Robotics/ros_semantic_release_action@main
+        with:
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+          package: ${{ github.event.inputs.package }}
+          arch: ${{ matrix.job.arch }}
+          ros_distro: ${{ matrix.ros_distro }}
+          github_release: false
+          public: true
+          changelog: false
+          skip_build: false
+          skip_tag: true
+          release_branches: main
+
+  release:
+    name: Create Release
+    runs-on: 2vcpu-ubuntu-2404
+    needs:
+      - build
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Release
+        uses: Greenroom-Robotics/ros_semantic_release_action@main
+        with:
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+          package: ${{ github.event.inputs.package }}
+          github_release: true
+          public: true
+          changelog: false
+          skip_build: true
+          skip_tag: false
+          release_branches: main

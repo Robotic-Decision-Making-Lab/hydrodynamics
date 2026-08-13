@@ -46,5 +46,6 @@ install(
 
 ament_export_targets(export_hydrodynamics HAS_LIBRARY_TARGET)
 ament_export_dependencies(Eigen3)
+ament_export_dependencies(tinyxml2)
 
 ament_package()
